@@ -473,6 +473,25 @@ export default function DarsliklarPage() {
       if (data.success) {
         console.log("[v0] Success! Starting 3 second countdown to:", selectedCourseData?.redirect_url)
 
+        // Facebook Pixel Lead Event
+        if (typeof window !== 'undefined' && (window as any).fbq) {
+          ;(window as any).fbq('track', 'Lead', {
+            content_name: selectedCourseData?.title || 'Course Registration',
+            content_category: 'Education',
+            value: selectedCourseData?.price || 0,
+            currency: 'USD',
+            status: 'registered',
+            customer_properties: {
+              ph: formData.phone,
+              em: formData.email || '',
+              fn: formData.name || '',
+              ge: formData.gender === '56' ? 'f' : 'm',
+              ag: formData.age || '',
+              ct: formData.country || '',
+            },
+          })
+        }
+
         track("lead_generated", {
           course: selectedCourseData?.title || "Unknown",
           gender: formData.gender,

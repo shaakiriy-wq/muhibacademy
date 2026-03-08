@@ -14,7 +14,7 @@
 ## 🗄️ Database Schema
 
 ### 1. `courses` Table
-```sql
+\`\`\`sql
 CREATE TABLE courses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   slug TEXT UNIQUE NOT NULL,
@@ -42,7 +42,7 @@ CREATE TABLE courses (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-```
+\`\`\`
 
 **Maydonlar:**
 - `slug`: Unique URL identifier (masalan: "quran-oqish")
@@ -60,7 +60,7 @@ CREATE TABLE courses (
 - `testimonials`: JSON array - sharhlar
 
 ### 2. `course_registrations` Table
-```sql
+\`\`\`sql
 CREATE TABLE course_registrations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   course_id UUID REFERENCES courses(id),
@@ -86,7 +86,7 @@ CREATE TABLE course_registrations (
   short_code TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-```
+\`\`\`
 
 **Maydonlar:**
 - `full_name`: To'liq ism
@@ -111,7 +111,7 @@ CREATE TABLE course_registrations (
 Barcha kurslarni olish
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "courses": [
@@ -143,13 +143,13 @@ Barcha kurslarni olish
   ],
   "isFallback": false
 }
-```
+\`\`\`
 
 #### POST `/api/courses`
 Yangi kurs yaratish (Admin)
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "slug": "yangi-kurs",
   "title": "Yangi Kurs",
@@ -179,7 +179,7 @@ Yangi kurs yaratish (Admin)
   "testimonials": [...],
   "is_active": true
 }
-```
+\`\`\`
 
 #### PUT `/api/courses`
 Kursni yangilash
@@ -198,7 +198,7 @@ Kursni o'chirish
 Kursga ro'yxatdan o'tish
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "courseSlug": "quran-oqish",
   "courseTitle": "Qur'on o'qish",
@@ -211,10 +211,10 @@ Kursga ro'yxatdan o'tish
   "utmMedium": "cpc",
   "utmCampaign": "summer2024"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "registration": {
@@ -224,13 +224,13 @@ Kursga ro'yxatdan o'tish
     "created_at": "2024-01-15T10:30:00Z"
   }
 }
-```
+\`\`\`
 
 #### GET `/api/course-registration`
 Barcha ro'yxatlarni olish (Admin)
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "registrations": [...],
@@ -242,7 +242,7 @@ Barcha ro'yxatlarni olish (Admin)
   },
   "totalRegistrations": 450
 }
-```
+\`\`\`
 
 ---
 
@@ -257,7 +257,7 @@ Bitrix24'ga Contact va Deal yaratish
 - **Deal:** `https://muhibacademy.bitrix24.kz/rest/1/eu84ey6vrebqa3t2/crm.deal.add.json`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "name": "Ali Valiyev",
   "phone": "+998901234567",
@@ -273,7 +273,7 @@ Bitrix24'ga Contact va Deal yaratish
   "courseId": "uuid",
   "shortCode": "abc123"
 }
-```
+\`\`\`
 
 **Bitrix Field Mapping:**
 
@@ -311,14 +311,14 @@ Bitrix24'ga Contact va Deal yaratish
 7. Response qaytarish
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "contactId": 12345,
   "dealId": 67890,
   "message": "Contact va Deal muvaffaqiyatli yaratildi"
 }
-```
+\`\`\`
 
 **Error Handling:**
 - 400: Validatsiya xatosi
@@ -336,36 +336,36 @@ So'nggi N kundagi ro'yxatlarni olish
 - `days`: Kunlar soni (default: 7)
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "registrations": [...],
   "total": 45
 }
-```
+\`\`\`
 
 ---
 
 ## 🔗 Bitrix24 Integratsiyasi
 
 ### Webhook URLs
-```
+\`\`\`
 Contact API: https://muhibacademy.bitrix24.kz/rest/1/c6llyvjpjzj7h78z/crm.contact.add.json
 Deal API: https://muhibacademy.bitrix24.kz/rest/1/eu84ey6vrebqa3t2/crm.deal.add.json
-```
+\`\`\`
 
 ### Contact Fields
-```json
+\`\`\`json
 {
   "NAME": "Ali",
   "LAST_NAME": "Valiyev",
   "PHONE": [{"VALUE": "+998901234567", "VALUE_TYPE": "WORK"}],
   "EMAIL": [{"VALUE": "username@telegram.chatapp.online", "VALUE_TYPE": "WORK"}]
 }
-```
+\`\`\`
 
 ### Deal Fields
-```json
+\`\`\`json
 {
   "TITLE": "Ali Valiyev - Qur'on o'qish",
   "CONTACT_ID": 12345,
@@ -379,7 +379,7 @@ Deal API: https://muhibacademy.bitrix24.kz/rest/1/eu84ey6vrebqa3t2/crm.deal.add.
   "UF_CRM_1768501957987": "https://muhibacademy.uz/s/abc123/stats",
   "COMMENTS": "Kurs: Qur'on o'qish\nKurs ID: uuid\nShortURL: muhibacademy.uz/s/abc123"
 }
-```
+\`\`\`
 
 ---
 
@@ -388,7 +388,7 @@ Deal API: https://muhibacademy.bitrix24.kz/rest/1/eu84ey6vrebqa3t2/crm.deal.add.
 ### Frontend Logic
 **File:** `app/darsliklar/page.tsx` (line 254-260)
 
-```typescript
+\`\`\`typescript
 // Gender check: "56" = female, else male
 const redirectUrl = formData.gender === "56" 
   ? selectedCourseData.female_redirect_url 
@@ -399,10 +399,10 @@ const finalRedirectUrl = redirectUrl || "https://t.me/MuhibAcademyBot"
 
 // Redirect after 3 seconds or instant button click
 window.location.href = finalRedirectUrl
-```
+\`\`\`
 
 ### Form Gender Values
-```typescript
+\`\`\`typescript
 // Line 927-945
 <button 
   onClick={() => setFormData({...formData, gender: "54"})}
@@ -415,15 +415,15 @@ window.location.href = finalRedirectUrl
 >
   Ayol
 </button>
-```
+\`\`\`
 
 ### Course Data Structure
-```typescript
+\`\`\`typescript
 {
   male_redirect_url: "https://t.me/MuhibAcademyBot?start=w49362090", // Erkaklar uchun
   female_redirect_url: "https://t.me/MuhibAcademyBot?start=w49362088" // Ayollar uchun
 }
-```
+\`\`\`
 
 ---
 
@@ -444,13 +444,13 @@ window.location.href = finalRedirectUrl
 5. Bitrix24 Comments'ga qo'shish
 
 ### Example URL
-```
+\`\`\`
 https://muhibacademy.uz/darsliklar?
   utm_source=google&
   utm_medium=cpc&
   utm_campaign=quran2024&
   utm_content=homepage_banner
-```
+\`\`\`
 
 ---
 
@@ -459,7 +459,7 @@ https://muhibacademy.uz/darsliklar?
 ### Client Setup
 **File:** `lib/supabase/client.ts`
 
-```typescript
+\`\`\`typescript
 import { createBrowserClient } from "@supabase/ssr"
 
 export function createClient() {
@@ -468,12 +468,12 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 }
-```
+\`\`\`
 
 ### Server Setup
 **File:** `lib/supabase/server.ts`
 
-```typescript
+\`\`\`typescript
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 
@@ -495,11 +495,11 @@ export async function createClient() {
     }
   )
 }
-```
+\`\`\`
 
 ### Row Level Security (RLS)
 
-```sql
+\`\`\`sql
 -- Courses (Public Read, Service Role Write)
 CREATE POLICY "Courses are viewable by everyone" 
 ON courses FOR SELECT USING (true);
@@ -514,14 +514,14 @@ ON course_registrations FOR INSERT WITH CHECK (true);
 CREATE POLICY "Service role can view registrations" 
 ON course_registrations FOR SELECT 
 USING (auth.role() = 'service_role');
-```
+\`\`\`
 
 ---
 
 ## 🔐 Environment Variables
 
 ### Required Variables
-```env
+\`\`\`env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
@@ -532,23 +532,23 @@ BLOB_READ_WRITE_TOKEN=your-blob-token
 
 # Vercel Analytics (Automatic)
 # No env vars needed - works automatically after deploy
-```
+\`\`\`
 
 ### Bitrix24 URLs (Hardcoded)
-```typescript
+\`\`\`typescript
 const BITRIX_CONTACT_URL = "https://muhibacademy.bitrix24.kz/rest/1/c6llyvjpjzj7h78z/crm.contact.add.json"
 const BITRIX_DEAL_URL = "https://muhibacademy.bitrix24.kz/rest/1/eu84ey6vrebqa3t2/crm.deal.add.json"
-```
+\`\`\`
 
 ---
 
 ## 🚀 Deployment Checklist
 
 ### 1. Database Setup
-```bash
+\`\`\`bash
 # Run migrations in Supabase SQL Editor
 - scripts/create_muhib_academy_tables.sql
-```
+\`\`\`
 
 ### 2. Environment Variables
 - Set all Supabase credentials in Vercel
@@ -560,7 +560,7 @@ const BITRIX_DEAL_URL = "https://muhibacademy.bitrix24.kz/rest/1/eu84ey6vrebqa3t
 - Test Deal creation with custom fields
 
 ### 4. Testing
-```bash
+\`\`\`bash
 # Test course creation
 POST /api/courses
 
@@ -573,7 +573,7 @@ POST /api/bitrix-lead
 # Test gender redirect
 - Select Male → Check male_redirect_url
 - Select Female → Check female_redirect_url
-```
+\`\`\`
 
 ### 5. Vercel Analytics
 - Auto-enabled after first deploy
@@ -595,14 +595,14 @@ POST /api/bitrix-lead
 ## 🔧 Debug Tips
 
 ### Enable Debug Logs
-```typescript
+\`\`\`typescript
 console.log("[v0] Variable:", variable)
 console.log("[v0] API Response:", response)
 console.log("[v0] Bitrix Data:", bitrixData)
-```
+\`\`\`
 
 ### Check Database
-```sql
+\`\`\`sql
 -- Recent registrations
 SELECT * FROM course_registrations 
 ORDER BY created_at DESC LIMIT 10;
@@ -611,7 +611,7 @@ ORDER BY created_at DESC LIMIT 10;
 SELECT course_slug, COUNT(*) as total
 FROM course_registrations
 GROUP BY course_slug;
-```
+\`\`\`
 
 ### Check Bitrix24
 1. Login to Bitrix24: https://muhibacademy.bitrix24.kz

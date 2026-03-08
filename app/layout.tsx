@@ -1,14 +1,15 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Poppins } from "next/font/google"
+import { Lexend } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import Script from "next/script"
 import "./globals.css"
 
-const poppins = Poppins({
+const lexend = Lexend({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-lexend",
 })
 
 export const metadata: Metadata = {
@@ -71,7 +72,7 @@ export default function RootLayout({
           />
         </noscript>
       </head>
-      <body className={`${poppins.className} font-sans antialiased`}>
+      <body className={`${lexend.className} bg-background text-foreground antialiased`}>
         {children}
         <Analytics />
         <SpeedInsights />

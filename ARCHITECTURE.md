@@ -13,7 +13,7 @@
 
 ### 1. FRONTEND ARXITEKTURASI
 
-```
+\`\`\`
 MuhibAcademy/
 ├── app/                          # Next.js 15 App Router
 │   ├── page.tsx                  # Bosh sahifa (Landing)
@@ -56,7 +56,7 @@ MuhibAcademy/
     ├── 01-create-analytics-tables.sql
     ├── create-short-urls-table.sql
     └── create_muhib_academy_tables.sql
-```
+\`\`\`
 
 ---
 
@@ -65,7 +65,7 @@ MuhibAcademy/
 ### **Tables:**
 
 #### 1. `courses` - Kurslar ma'lumotlari
-```sql
+\`\`\`sql
 - id (TEXT, PRIMARY KEY)
 - title (TEXT)
 - subtitle (TEXT)
@@ -77,7 +77,7 @@ MuhibAcademy/
 - instructor_name, instructor_title, instructor_image (TEXT)
 - male_redirect_url, female_redirect_url (TEXT) -- Gender-based redirect
 - created_at, updated_at (TIMESTAMP)
-```
+\`\`\`
 
 **Default kurslar:**
 - `quran` - Qur'on o'qish
@@ -85,7 +85,7 @@ MuhibAcademy/
 - `islamic-studies` - Islom asoslari
 
 #### 2. `course_registrations` - Ariza berganlar
-```sql
+\`\`\`sql
 - id (UUID, PRIMARY KEY)
 - course_id, course_title (TEXT)
 - name, phone, age, country, city (TEXT)
@@ -95,10 +95,10 @@ MuhibAcademy/
 - status (TEXT) -- 'new', 'contacted', 'enrolled', 'cancelled'
 - utm_source, utm_medium, utm_campaign (TEXT)
 - created_at, updated_at (TIMESTAMP)
-```
+\`\`\`
 
 #### 3. `short_urls` - URL Shortener
-```sql
+\`\`\`sql
 - id (UUID)
 - code (TEXT, UNIQUE)
 - long_url (TEXT)
@@ -106,25 +106,25 @@ MuhibAcademy/
 - clicks (INTEGER)
 - utm_source, utm_medium, utm_campaign (TEXT)
 - created_at (TIMESTAMP)
-```
+\`\`\`
 
 #### 4. `page_visits` - Sahifa tashriflari (Analytics)
-```sql
+\`\`\`sql
 - id (UUID)
 - page_url (TEXT)
 - referrer, utm_source, utm_medium, utm_campaign (TEXT)
 - device_type, browser, os, country, city (TEXT)
 - visited_at (TIMESTAMP)
-```
+\`\`\`
 
 #### 5. `form_submissions` - Forma yuborilishlari
-```sql
+\`\`\`sql
 - id (UUID)
 - form_type (TEXT) -- 'course_registration', 'contact'
 - data (JSONB)
 - page_url, utm_source, utm_medium, utm_campaign (TEXT)
 - submitted_at (TIMESTAMP)
-```
+\`\`\`
 
 ---
 
@@ -135,7 +135,7 @@ MuhibAcademy/
 - **Authenticated:** Admin paneli, barcha ma'lumotlarni o'qish/yangilash
 
 ### Environment Variables:
-```env
+\`\`\`env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
@@ -146,7 +146,7 @@ BLOB_READ_WRITE_TOKEN=...
 
 # Analytics
 NEXT_PUBLIC_VERCEL_ANALYTICS_ID=... (auto)
-```
+\`\`\`
 
 ---
 
@@ -206,7 +206,7 @@ NEXT_PUBLIC_VERCEL_ANALYTICS_ID=... (auto)
 **API Endpoint:** `POST /api/bitrix-lead`
 
 **Yuborilgan ma'lumotlar:**
-```javascript
+\`\`\`javascript
 {
   NAME: formData.name,
   PHONE: [{ VALUE: formData.phone, VALUE_TYPE: "WORK" }],
@@ -218,7 +218,7 @@ NEXT_PUBLIC_VERCEL_ANALYTICS_ID=... (auto)
   UTM_SOURCE: formData.utm_source,
   // ... va boshqalar
 }
-```
+\`\`\`
 
 **Webhook URL:** Bitrix webhook endpointi (environment variable)
 
@@ -331,9 +331,9 @@ NEXT_PUBLIC_VERCEL_ANALYTICS_ID=... (auto)
 ## 🚀 DEPLOYMENT WORKFLOW
 
 ### **Development:**
-```bash
+\`\`\`bash
 npm run dev          # localhost:3000
-```
+\`\`\`
 
 ### **Production (Vercel):**
 1. GitHub'ga push

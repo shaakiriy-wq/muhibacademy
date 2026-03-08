@@ -20,7 +20,7 @@
 ### Vizual Dizayn Elementlari
 
 #### 1. **Kurs Tanlash Kartochkalari**
-```typescript
+\`\`\`typescript
 // Kurs kartochkasi dizayni:
 - Gradient fon (bg-gradient-to-br)
 - Glassmorphism effekti (backdrop-blur-sm)
@@ -34,15 +34,15 @@
   - Level
   - Price va chegirma
   - "3 ta dars BEPUL" badge
-```
+\`\`\`
 
 #### 2. **Forma Bosqichlari Progressi**
-```typescript
+\`\`\`typescript
 // Step indicator:
 Step 1/3: Shaxsiy ma'lumotlar
 Step 2/3: Ta'lim ma'lumotlari  
 Step 3/3: Bog'lanish
-```
+\`\`\`
 
 ### 3 Bosqichli Forma Strukturasi
 
@@ -62,7 +62,7 @@ Step 3/3: Bog'lanish
    - Har davlat uchun maxsus raqam uzunligi
    - Validation: davlatga qarab (UZ = 9 raqam, US = 10, va h.k.)
    
-   ```typescript
+   \`\`\`typescript
    // Country selector struktura:
    {
      code: "UZ",
@@ -70,7 +70,7 @@ Step 3/3: Bog'lanish
      flag: "🇺🇿",
      phoneCode: "+998"
    }
-   ```
+   \`\`\`
 
 3. **Yosh** (`age`)
    - Type: number
@@ -127,7 +127,7 @@ Step 3/3: Bog'lanish
 **Endpoint**: `GET /api/courses`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "courses": [
@@ -153,10 +153,10 @@ Step 3/3: Bog'lanish
     }
   ]
 }
-```
+\`\`\`
 
 **Kod:**
-```typescript
+\`\`\`typescript
 // app/api/courses/route.ts
 import { createClient } from '@supabase/supabase-js'
 
@@ -190,13 +190,13 @@ export async function GET() {
     courses: transformed 
   })
 }
-```
+\`\`\`
 
 ### 2. Bitrix24 Lead API
 **Endpoint**: `POST /api/bitrix-lead`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "name": "Alisher Karimov",
   "phone": "+998901234567",
@@ -212,7 +212,7 @@ export async function GET() {
   "courseId": "arab-tili-boshlangich",
   "shortCode": "abc123"
 }
-```
+\`\`\`
 
 **Bitrix24 Field Mapping:**
 
@@ -231,16 +231,16 @@ export async function GET() {
 | shortCode | UF_CRM_1768501957987 | string | Stats link |
 
 **Bitrix Webhook URLs:**
-```typescript
+\`\`\`typescript
 const BITRIX_CONTACT_URL = 
   "https://muhibacademy.bitrix24.kz/rest/1/c6llyvjpjzj7h78z/crm.contact.add.json"
   
 const BITRIX_DEAL_URL = 
   "https://muhibacademy.bitrix24.kz/rest/1/eu84ey6vrebqa3t2/crm.deal.add.json"
-```
+\`\`\`
 
 **To'liq Bitrix Integration Kodi:**
-```typescript
+\`\`\`typescript
 // app/api/bitrix-lead/route.ts
 export async function POST(request: NextRequest) {
   const body = await request.json()
@@ -303,13 +303,13 @@ export async function POST(request: NextRequest) {
     dealId 
   })
 }
-```
+\`\`\`
 
 ### 3. Course Registration API
 **Endpoint**: `POST /api/course-registration`
 
 **Ma'lumotlarni Supabase'ga saqlash:**
-```typescript
+\`\`\`typescript
 const { data, error } = await supabase
   .from("course_registrations")
   .insert({
@@ -327,14 +327,14 @@ const { data, error } = await supabase
   })
   .select()
   .single()
-```
+\`\`\`
 
 ---
 
 ## 🗄️ Database Schema
 
 ### courses jadval
-```sql
+\`\`\`sql
 CREATE TABLE courses (
   id BIGSERIAL PRIMARY KEY,
   slug TEXT UNIQUE NOT NULL,
@@ -359,10 +359,10 @@ CREATE TABLE courses (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-```
+\`\`\`
 
 ### course_registrations jadval
-```sql
+\`\`\`sql
 CREATE TABLE course_registrations (
   id BIGSERIAL PRIMARY KEY,
   course_slug TEXT,
@@ -385,7 +385,7 @@ CREATE TABLE course_registrations (
   status TEXT DEFAULT 'new',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-```
+\`\`\`
 
 ---
 
@@ -393,7 +393,7 @@ CREATE TABLE course_registrations (
 
 ### Redirect Logikasi
 
-```typescript
+\`\`\`typescript
 // Formada jins tanlanadi
 const formData = {
   gender: "56" // 54=Erkak, 56=Ayol
@@ -418,7 +418,7 @@ useEffect(() => {
     window.location.href = redirectUrl
   }
 }, [redirectCountdown])
-```
+\`\`\`
 
 ### Admin Panel - Redirect URL Sozlash
 
@@ -426,7 +426,7 @@ Admin panelda har bir kurs uchun:
 1. **Erkaklar uchun Redirect URL** (ko'k rang)
 2. **Ayollar uchun Redirect URL** (pushti rang)
 
-```typescript
+\`\`\`typescript
 // Admin formasi
 <div className="space-y-4">
   {/* Erkaklar URL */}
@@ -461,14 +461,14 @@ Admin panelda har bir kurs uchun:
     />
   </div>
 </div>
-```
+\`\`\`
 
 ---
 
 ## 📊 Analytics Tracking
 
 ### 1. Form Submit Tracking
-```typescript
+\`\`\`typescript
 // Lead generated event
 track("lead_generated", {
   course: selectedCourseData?.title,
@@ -490,10 +490,10 @@ fetch("/api/analytics/track", {
     session_id: localStorage.getItem("session_id")
   })
 })
-```
+\`\`\`
 
 ### 2. Bot Click Tracking
-```typescript
+\`\`\`typescript
 fetch("/api/analytics/track", {
   method: "POST",
   body: JSON.stringify({
@@ -504,13 +504,13 @@ fetch("/api/analytics/track", {
     redirect_url: redirectUrl
   })
 })
-```
+\`\`\`
 
 ---
 
 ## 🎯 To'liq Form Submit Flow
 
-```
+\`\`\`
 1. Foydalanuvchi kurs tanlaydi
    ↓
 2. Forma ochiladi (Step 1)
@@ -544,13 +544,13 @@ fetch("/api/analytics/track", {
    - Ayol → female_redirect_url
    ↓
 11. Telegram bot ochiladi
-```
+\`\`\`
 
 ---
 
 ## 🔐 Environment Variables
 
-```env
+\`\`\`env
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=xxx
@@ -558,23 +558,23 @@ SUPABASE_SERVICE_ROLE_KEY=xxx
 # Bitrix24 - webhook'lar kodda hard-coded
 # Contact: /rest/1/c6llyvjpjzj7h78z/crm.contact.add.json
 # Deal: /rest/1/eu84ey6vrebqa3t2/crm.deal.add.json
-```
+\`\`\`
 
 ---
 
 ## 🎨 Forma Styling (Tailwind)
 
 ### Color Scheme
-```css
+\`\`\`css
 Primary: Gradient (blue-600 → purple-600)
 Success: green-600
 Error: red-500
 Background: gray-50
 Card: white + shadow-xl
-```
+\`\`\`
 
 ### Key Components
-```typescript
+\`\`\`typescript
 // Step indicator
 <div className="flex items-center justify-between mb-8">
   {[1, 2, 3].map(step => (
@@ -615,14 +615,14 @@ Card: white + shadow-xl
 ">
   Ro'yxatdan o'tish
 </button>
-```
+\`\`\`
 
 ---
 
 ## 🚨 Error Handling
 
 ### Validation Errors
-```typescript
+\`\`\`typescript
 const errors = {
   name: "Ismingizni kiriting",
   phone: "O'zbekiston uchun 9 ta raqam kiriting",
@@ -634,10 +634,10 @@ const errors = {
   whatsapp: "WhatsApp raqamini kiriting",
   telegram: "Telegram username kiriting"
 }
-```
+\`\`\`
 
 ### API Error Handling
-```typescript
+\`\`\`typescript
 try {
   const response = await fetch("/api/bitrix-lead", {...})
   const data = await response.json()
@@ -652,13 +652,13 @@ try {
   console.error("Network error:", error)
   alert("Internet aloqasini tekshiring")
 }
-```
+\`\`\`
 
 ---
 
 ## 📱 Responsive Design
 
-```css
+\`\`\`css
 /* Mobile first approach */
 .form-container {
   @apply px-4 py-6;
@@ -677,7 +677,7 @@ try {
     @apply px-16 py-16 max-w-2xl mx-auto;
   }
 }
-```
+\`\`\`
 
 ---
 

@@ -103,6 +103,10 @@
 }
 
 /* ========== CARDS ========== */
+.bg-card-dark {
+  background: #162a1b;
+}
+
 .card-dark {
   background: #1c271e;
   border: 1px solid #28392c;

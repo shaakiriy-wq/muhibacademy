@@ -145,7 +145,7 @@ export default function KurslarPage() {
               <Link href="/kurslar" className="text-white hover:text-primary transition-colors text-sm font-medium">Barcha kurslar</Link>
               <Link href="/ustozlar" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Ustozlarimiz</Link>
               <Link href="/#haqida" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Akademiya haqida</Link>
-              <Link href="/#faq" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Biz bilan bog'lanish</Link>
+              <Link href="/#contact" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Biz bilan bog'lanish</Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">

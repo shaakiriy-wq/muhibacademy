@@ -19,7 +19,7 @@ const instructors = [
     name: "Shayx Ahmad Al-Sayid",
     specialty: "Qur'on va Tajvid ustozi",
     description: "Misrning Al-Azhar universiteti bitiruvchisi, 15 yillik xalqaro dars berish tajribasiga ega mutaxassis.",
-    image: "/islamic-scholar-beard-1.jpg",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCeqacFy2T5PV8tPqAT2HawNY6fMDITCmUhYLbPyt5-PkHof2KTFZ4XAPI4qwNdaqAZWUSKTLCE9ZI36TdVFv0D96F1AJhAOCaKachXl6geIV7vz47JFfG8QhfZjJBUHmOHjGg83L7UK701JkeOACyGXMP3r7DUOeJwqS4Zq_4Ev5f1Znt15Odt0FYmo5Fl6Mrbi17HHGAKro7rf1eIrtzv2SlyQzI0BDvVmNsgkXrt0MirqVQ9jXemFW6kZNMksmUKXhaMARQ3DKc",
     verified: true,
     courses: 12,
     students: 2500,
@@ -29,7 +29,7 @@ const instructors = [
     name: "Ustoz Maryam Xon",
     specialty: "Arab tili va Adabiyoti",
     description: "Klassik arab tili grammatikasi va zamonaviy muloqot metodikasi bo'yicha yetakchi mutaxassis.",
-    image: "/islamic-teacher-quran.jpg",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBVhkR7OsuOF3qgIzN84x4bMMwnhmJUwh_8KVWGp0KTHTp1bmXARnDzsOAX2bS5krH9WJ475Kv8-aUkDi-OhbCzeHjMWqJydl2OeNxosFOrh52ZWgqqer-r8hfhG_b4A63dkhiK5KjM5HMNkxVlAulqoQEbzwqKCT0YKDiSrFVpuyKsucY3ChBd8ivhvvNrqubTFJUKJwSED3EZuvzNxGw8QqRKCZ0pFKAH762qmtGLtslOehRpPYysTvzqIeb2zB4Y4sVoUjeA_pE",
     verified: true,
     courses: 8,
     students: 1800,
@@ -39,7 +39,7 @@ const instructors = [
     name: "Dr. Omar Faruq",
     specialty: "Fiqh va Usul al-Fiqh",
     description: "Islom huquqshunosligi fanlari doktori, zamonaviy masalalar bo'yicha ko'plab ilmiy ishlar muallifi.",
-    image: "/islamic-scholar-beard-2.jpg",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCU6jiER4Y3jukXNOPCrefnmAB5Y3hh5o28O2gyiMFPBJl306pb15a_D941XoDcNZBIb-fsE59LWw_kdoCXxrJh_1GEqCHLmLNxlnNlBDBRPZDfMP5qtQQb4Mlq-0XbLx9kavus_yWrtop3fsJhYvBsvF0O2xGXAFTYlyqSo80IvT9xFlHyhJYdRCcRl-djK1KsT6dmsGmwl5bHKkLxNkFEeLp5gbhJTvtGuEscCo5GTKdZ0d03Afcy0O_LFVFVItL7k3lAJ6xZMj8",
     verified: true,
     courses: 6,
     students: 1200,
@@ -49,7 +49,7 @@ const instructors = [
     name: "Shayx Yusuf Al-Amin",
     specialty: "Islom tarixi va Siyrat",
     description: "Payg'ambarimiz alayhissalom hayotlari va Islom sivilizatsiyasi tarixi bo'yicha mahoratli ma'ruzachi.",
-    image: "/islamic-scholar-beard-3.jpg",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAowJLkVVbj2Zl5IeSCEA0QGFjkd3Ovgxfa38Do56NmJHJVk8vy8TS_HlZ06O23MIA5KVB4ZveoVkiq23lrHLNaX9sB1HDBXpXdr8_QpN7t-NImBi0XxM2sAD93r3iaHyHyBj0HHwNScthaarMdgRbyqgnPmsWzbibJ4ujE5tmC_qqpdmWPEyjjBFX3eUJns8wWhxKqDgXNAW893H3prHVnV9V_ljj6KUAadhulJfMAGsFm9FlSaQ9F5JaCVIodnwuh8VypX0awF_0",
     verified: true,
     courses: 10,
     students: 2100,
@@ -59,7 +59,7 @@ const instructors = [
     name: "Dr. Amina Qureshi",
     specialty: "Islomiy Psixologiya",
     description: "Ruhiy salomatlik va islomiy tarbiya uyg'unligi bo'yicha kurslar muallifi va maslahatchi.",
-    image: "/arabic-teacher-professor.jpg",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuD6Gyvdbo__F4gYmoYHQeGir1tfrU-hdeIKbcViNqqsTxdculPel_853LEQpRtf1K0Yrp_0XWsAarq6yhT7wFE6Z5UtaNNlXlo18gurFJdD-pCW6Wdu61_S6fio0BjZIFNL-HQUIVfVxBxS32CzFagcFb0UX2fBK4A8goOOliCyfMCPq59Kewm9WMUjFljxtTdvgh7l-CL_kIXIDXYXQMOkEz8HMbP4CTfLuZojqg66jQ5cYYtIceQvfzd_zgELyLxujSCN9IYcYD0",
     verified: false,
     courses: 4,
     students: 900,
@@ -69,7 +69,7 @@ const instructors = [
     name: "Ustoz Bilol Ali",
     specialty: "Aqida va Mantiq",
     description: "Kalom ilmi va islomiy mantiq asoslarini sodda va tushunarli tilda yetkazib beruvchi ustoz.",
-    image: "/islamic-scholar-teacher.jpg",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBc8a8jNYXIlJZYxm9vc-aSfyq4LL94oKxToKSdYCmfBj6Mfa_as0W3pKXPxEAjEMnFzIgE7v46VQrejSs6WLfXnw4aFBR_-_b6evTsbzhlGXoHBA_3P-ayySy9yngI6eDF10NOX7WxSFSpq2FzJ4J5OyTtwTmh5avby3zpAP6BTomdaDusGhhdqy9qYxnajy9xcMzRFYCSWWB_EPidv2tiWu6U-JPLpXhlkU5a-bJmY7uBdUO78qmFXiDz9R-kbidT5oE3bMWpiTs",
     verified: false,
     courses: 5,
     students: 750,
@@ -104,10 +104,10 @@ export default function UstozlarPage() {
               <span className="text-xl font-bold tracking-tight">Muhib Academy</span>
             </Link>
             <nav className="hidden lg:flex items-center gap-6">
+              <Link href="/" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Bosh sahifa</Link>
               <Link href="/kurslar" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Kurslar</Link>
               <Link href="/ustozlar" className="text-white hover:text-primary transition-colors text-sm font-medium">Ustozlarimiz</Link>
-              <Link href="/#haqida" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Akademiya haqida</Link>
-              <Link href="/#faq" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Blog</Link>
+              <Link href="/#blog" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Blog</Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
@@ -171,19 +171,9 @@ export default function UstozlarPage() {
                   </div>
                   <h3 className="text-background text-xl font-bold mb-1">{instructor.name}</h3>
                   <p className="text-primary font-bold text-sm mb-4">{instructor.specialty}</p>
-                  <p className="text-gray-600 text-sm line-clamp-2 mb-4">
+                  <p className="text-gray-600 text-sm line-clamp-2 mb-6">
                     {instructor.description}
                   </p>
-                  <div className="flex items-center justify-center gap-6 mb-6 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Icon name="play_circle" className="text-base" />
-                      {instructor.courses} kurs
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Icon name="group" className="text-base" />
-                      {instructor.students.toLocaleString()} talaba
-                    </span>
-                  </div>
                   <button className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-background hover:text-primary transition-colors">
                     Batafsil ma'lumot
                   </button>

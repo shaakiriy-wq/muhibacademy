@@ -49,13 +49,11 @@ const countriesWithCodes = [
 const faqs = [
   {
     question: "Darslar qanday formatda o'tiladi?",
-    answer:
-      "Barcha darslar jonli Zoom orqali o'tiladi. Darslar video formatda saqlanib, istalgan vaqt qayta ko'rishingiz mumkin.",
+    answer: "Barcha darslar jonli Zoom orqali o'tiladi. Darslar video formatda saqlanib, istalgan vaqt qayta ko'rishingiz mumkin.",
   },
   {
     question: "Birinchi 3 ta dars haqiqatan ham bepulmi?",
-    answer:
-      "Ha, birinchi 3 ta dars to'liq bepul! Siz kursni sinab ko'rib, ustozlar bilan tanishib olishingiz mumkin. Faqat shundan keyin to'lov qilasiz.",
+    answer: "Ha, birinchi 3 ta dars to'liq bepul! Siz kursni sinab ko'rib, ustozlar bilan tanishib olishingiz mumkin.",
   },
   {
     question: "Sertifikat beriladimi?",
@@ -272,7 +270,6 @@ export default function DarsliklarPage() {
   }
 
   const copyPhoneToWhatsApp = () => {
-    const selectedCountry = countriesWithCodes.find((c) => c.code === formData.phoneCountry)
     setFormData((prev) => ({
       ...prev,
       whatsapp: prev.phone,
@@ -298,856 +295,813 @@ export default function DarsliklarPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
+          full_name: formData.name,
           phone: fullPhone,
+          age: formData.age,
+          gender: formData.gender,
+          country: formData.country,
+          arab_level: formData.level,
+          contact_method: formData.contactMethod,
           whatsapp: whatsappFull,
-          course: selectedCourseData?.title,
-          courseId: selectedCourse,
-          shortCode,
+          telegram: formData.telegram,
+          course_slug: selectedCourseData?.slug || "",
+          course_title: selectedCourseData?.title || "",
+          short_code: shortCode,
+          utm_source: urlParams.get("utm_source") || "",
+          utm_medium: urlParams.get("utm_medium") || "",
+          utm_campaign: urlParams.get("utm_campaign") || "",
         }),
       })
 
-      const data = await response.json()
-      if (data.success) {
-        if (typeof window !== 'undefined' && (window as any).fbq) {
-          ;(window as any).fbq('track', 'Lead', {
-            content_name: selectedCourseData?.title || 'Course Registration',
-            content_category: 'Education',
-          })
-        }
-
-        track("lead_generated", {
+      const result = await response.json()
+      if (result.success) {
+        setSubmitSuccess(true)
+        setRedirectCountdown(5)
+        track("form_submitted", {
           course: selectedCourseData?.title || "Unknown",
           gender: formData.gender,
           age: formData.age,
-          utm_source: urlParams.get("utm_source") || "direct",
-          short_code: shortCode || "none",
+          country: formData.country,
+          level: formData.level,
         })
-
-        fetch("/api/analytics/track", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            event_type: "lead_generated",
-            page_url: window.location.href,
-            page_title: `Form Submit - ${selectedCourseData?.title || "Course"}`,
-            referrer: document.referrer,
-            utm_source: urlParams.get("utm_source"),
-            utm_medium: urlParams.get("utm_medium"),
-            utm_campaign: urlParams.get("utm_campaign"),
-            short_code: shortCode,
-            session_id: localStorage.getItem("session_id"),
-            course_slug: selectedCourseData?.slug,
-            course_title: selectedCourseData?.title,
-            gender: formData.gender,
-            age: formData.age ? Number.parseInt(formData.age) : undefined,
-          }),
-        }).catch(console.error)
-
-        setSubmitSuccess(true)
-        setRedirectCountdown(3)
-      } else {
-        alert("Xatolik yuz berdi: " + (data.error || "Iltimos qaytadan urinib ko'ring."))
       }
     } catch (error) {
-      console.error("Submit error:", error)
-      alert("Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.")
+      console.error("Error submitting form:", error)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const resetForm = () => {
-    setSubmitSuccess(false)
-    setSelectedCourse(null)
-    setFormData({
-      name: "", phone: "", age: "", gender: "", country: "", level: "", contactMethod: "",
-      whatsapp: "", telegram: "", phoneCountry: "UZ", whatsappCountry: "UZ", hasWhatsApp: true,
-    })
-    setFormStep(1)
-    setRedirectCountdown(0)
+  // Course categories for display
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, string> = {
+      arab_tili: "ARAB TILI",
+      quron_ilmlari: "QUR'ON ILMLARI",
+      fiqh_va_aqida: "FIQH VA AQIDA",
+      islom_tarixi: "ISLOM TARIXI",
+      zamonaviy_fanlar: "ZAMONAVIY FANLAR",
+    }
+    return labels[category] || category?.toUpperCase() || "KURS"
   }
 
-  const filteredCountries = countriesWithCodes.filter((c) => c.name.toLowerCase().includes(countrySearch.toLowerCase()))
-  const filteredPhoneCountries = countriesWithCodes.filter(
-    (c) => c.name.toLowerCase().includes(phoneCountrySearch.toLowerCase()) || c.phoneCode.includes(phoneCountrySearch),
-  )
-  const filteredWhatsAppCountries = countriesWithCodes.filter(
-    (c) => c.name.toLowerCase().includes(whatsappCountrySearch.toLowerCase()) || c.phoneCode.includes(whatsappCountrySearch),
-  )
-
-  // Loading state
-  if (isLoadingCourses) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Darsliklar yuklanmoqda...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Course detail view
-  if (selectedCourse && selectedCourseData) {
-    return (
-      <div className="min-h-screen bg-background">
-        {/* Success Modal */}
-        {submitSuccess && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="relative max-w-md w-full rounded-2xl bg-card-dark p-8 shadow-2xl border border-border animate-in fade-in zoom-in duration-300">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary shadow-lg animate-pulse">
-                <Icon name="check_circle" className="text-4xl text-background" />
-              </div>
-              <h3 className="mb-3 text-center text-2xl font-bold text-foreground">Tabriklaymiz!</h3>
-              <p className="mb-6 text-center text-muted-foreground">
-                Siz muvaffaqiyatli ro'yxatdan o'tdingiz. Tez orada siz bilan bog'lanamiz.
-              </p>
-              {redirectCountdown > 0 && (
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    <div className="relative h-24 w-24">
-                      <svg className="absolute inset-0 h-24 w-24 -rotate-90 transform">
-                        <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="none" className="text-muted" />
-                        <circle
-                          cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="6" fill="none"
-                          strokeDasharray={`${2 * Math.PI * 40}`}
-                          strokeDashoffset={`${2 * Math.PI * 40 * (1 - (4 - redirectCountdown) / 3)}`}
-                          className="text-primary transition-all duration-1000 ease-linear" strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-3xl font-bold text-primary">{redirectCountdown}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-foreground mb-1">Kutib turing...</p>
-                    <p className="text-xs text-muted-foreground">Sizni guruhga yo'naltiryapmiz</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Header */}
-        <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md px-4 md:px-10 py-3">
-          <div className="max-w-[1440px] mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button onClick={() => setSelectedCourse(null)} className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-                <Icon name="arrow_back" className="text-xl" />
-                <span className="text-sm font-medium hidden sm:inline">Orqaga</span>
-              </button>
-              <Link href="/" className="flex items-center gap-3">
-                <div className="size-8 text-primary">
-                  <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z" fill="currentColor" />
-                  </svg>
-                </div>
-                <h2 className="text-foreground text-xl font-bold">Muhib Academy</h2>
-              </Link>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="max-w-[1440px] mx-auto px-4 md:px-10 py-8">
-          <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
-            {/* Left Column - Course Info */}
-            <div className="space-y-6">
-              {/* Course Header */}
-              <div className="rounded-xl bg-card-dark p-6 border border-border">
-                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-yellow-500 px-4 py-1.5 text-sm font-bold text-black">
-                  <Icon name="redeem" className="text-lg" />
-                  3 ta dars BEPUL
-                </div>
-                <h1 className="mb-3 text-2xl md:text-3xl font-bold text-foreground">{selectedCourseData.title}</h1>
-                <p className="mb-4 text-muted-foreground leading-relaxed">{selectedCourseData.description}</p>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1"><Icon name="group" className="text-lg" />{selectedCourseData.students}</span>
-                  <span className="flex items-center gap-1"><Icon name="schedule" className="text-lg" />{selectedCourseData.duration}</span>
-                  <span className="flex items-center gap-1">
-                    <Icon name="star" className="text-lg text-yellow-400" style={{ fontVariationSettings: "'FILL' 1" }} />
-                    <span className="text-yellow-400 font-bold">{selectedCourseData.rating}</span>
-                    <span className="text-muted-foreground">({selectedCourseData.reviews} sharh)</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Video */}
-              {selectedCourseData.videoUrl && (
-                <div className="rounded-xl bg-card-dark p-4 border border-border overflow-hidden">
-                  <div className="aspect-video w-full overflow-hidden rounded-lg">
-                    <iframe
-                      src={getYouTubeEmbedUrl(selectedCourseData.videoUrl)}
-                      title={selectedCourseData.title}
-                      className="h-full w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Features */}
-              <div className="rounded-xl bg-card-dark p-6 border border-border">
-                <h3 className="mb-4 font-bold text-foreground flex items-center gap-2">
-                  <Icon name="check_circle" className="text-xl text-primary" />
-                  Kursda nimalar bor
-                </h3>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {(selectedCourseData.features || []).map((feature: string, idx: number) => (
-                    <div key={idx} className="flex items-start gap-2 text-muted-foreground">
-                      <Icon name="check" className="text-lg text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-sm">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Instructor */}
-              <div className="rounded-xl bg-card-dark p-6 border border-border">
-                <h3 className="mb-4 flex items-center gap-2 font-bold text-foreground">
-                  <Icon name="school" className="text-xl text-primary" />
-                  Ustoz haqida
-                </h3>
-                <div className="flex items-start gap-4">
-                  <img
-                    src={selectedCourseData.instructor?.image || "/placeholder.svg?height=80&width=80"}
-                    alt={selectedCourseData.instructor?.name}
-                    className="h-16 w-16 rounded-full object-cover border-2 border-primary/30"
-                  />
-                  <div>
-                    <h4 className="font-bold text-foreground">{selectedCourseData.instructor?.name}</h4>
-                    <p className="text-sm text-primary">{selectedCourseData.instructor?.title}</p>
-                    <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Icon name="military_tech" className="text-base" />{selectedCourseData.instructor?.experience}</span>
-                      <span className="flex items-center gap-1"><Icon name="group" className="text-base" />{selectedCourseData.instructor?.students}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Testimonials */}
-              <div className="rounded-xl bg-card-dark p-6 border border-border">
-                <h3 className="mb-4 flex items-center gap-2 font-bold text-foreground">
-                  <Icon name="format_quote" className="text-xl text-primary" />
-                  O'quvchilar fikri
-                </h3>
-                <div className="space-y-3">
-                  {(selectedCourseData.testimonials || []).map((t: any, idx: number) => (
-                    <div key={idx} className="rounded-lg bg-muted/30 p-4 border border-border/50">
-                      <div className="mb-2 flex items-center justify-between">
-                        <div>
-                          <div className="font-bold text-foreground text-sm">{t.name}</div>
-                          <div className="text-xs text-muted-foreground">{t.age} yosh</div>
-                        </div>
-                        <div className="flex gap-0.5">
-                          {[...Array(t.rating || 5)].map((_, i) => (
-                            <Icon key={i} name="star" className="text-sm text-yellow-400" style={{ fontVariationSettings: "'FILL' 1" }} />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-sm italic text-muted-foreground">"{t.text}"</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Enrollment Form */}
-            <div className="lg:sticky lg:top-24 lg:self-start">
-              <form
-                onSubmit={async (e) => { e.preventDefault(); await handleSubmit() }}
-                className="rounded-xl bg-card p-6 shadow-xl border border-border"
-              >
-                {/* Form Header */}
-                <div className="mb-4 text-center">
-                  <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-bold text-background">
-                    <Icon name="redeem" className="text-sm" />
-                    BUGUN BEPUL!
-                  </div>
-                  <h3 className="text-lg font-bold text-card-foreground mb-1">
-                    {formStep === 1 && "1-qadam: Ma'lumotlaringiz"}
-                    {formStep === 2 && "2-qadam: Davlat va daraja"}
-                    {formStep === 3 && "3-qadam: Bog'lanish"}
-                  </h3>
-                  <p className="text-xs text-muted-foreground">3 daqiqada ro'yxatdan o'ting</p>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-4 flex gap-1">
-                  {[1, 2, 3].map((step) => (
-                    <div key={step} className={`h-1 flex-1 rounded-full transition-colors ${step <= formStep ? "bg-primary" : "bg-muted"}`} />
-                  ))}
-                </div>
-
-                {/* Step 1: Personal Info */}
-                {formStep === 1 && (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-card-foreground">Ismingiz</label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        placeholder="Ism va familiya"
-                        className={`h-10 w-full rounded-lg border-2 bg-muted px-3 text-sm text-foreground transition-all focus:outline-none focus:border-primary ${errors.name ? "border-red-500 bg-red-500/10" : "border-border hover:border-primary/50"}`}
-                      />
-                      {errors.name && <p className="mt-0.5 text-xs text-red-500">{errors.name}</p>}
-                    </div>
-
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-card-foreground">Telefon raqamingiz</label>
-                      <div className="flex gap-2">
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => setShowPhoneCountryDropdown(!showPhoneCountryDropdown)}
-                            className="flex h-10 w-20 items-center justify-center gap-1 rounded-lg border-2 border-border bg-muted hover:border-primary/50 transition-all"
-                          >
-                            <span className="text-base">{countriesWithCodes.find((c) => c.code === formData.phoneCountry)?.flag}</span>
-                            <Icon name="expand_more" className="text-lg text-muted-foreground" />
-                          </button>
-                          {showPhoneCountryDropdown && (
-                            <div className="absolute left-0 top-full z-50 mt-1 max-h-48 w-64 overflow-auto rounded-lg border-2 border-border bg-card shadow-xl">
-                              <input
-                                type="text"
-                                placeholder="Qidirish..."
-                                value={phoneCountrySearch}
-                                onChange={(e) => setPhoneCountrySearch(e.target.value)}
-                                className="sticky top-0 w-full border-b border-border bg-card px-3 py-2 text-sm focus:outline-none text-foreground"
-                              />
-                              {filteredPhoneCountries.map((c) => (
-                                <button
-                                  key={c.code}
-                                  type="button"
-                                  onClick={() => { setFormData((prev) => ({ ...prev, phoneCountry: c.code })); setShowPhoneCountryDropdown(false); setPhoneCountrySearch("") }}
-                                  className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-primary/10 text-sm text-foreground"
-                                >
-                                  <span>{c.flag}</span>
-                                  <span>{c.name}</span>
-                                  <span className="ml-auto text-muted-foreground">{c.phoneCode}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                            {countriesWithCodes.find((c) => c.code === formData.phoneCountry)?.phoneCode}
-                          </span>
-                          <input
-                            type="tel"
-                            value={formData.phone}
-                            onChange={handlePhoneChange}
-                            placeholder="901234567"
-                            maxLength={getPhoneLength(formData.phoneCountry)}
-                            className={`h-10 w-full rounded-lg border-2 bg-muted pl-14 pr-3 text-sm text-foreground transition-all focus:outline-none focus:border-primary ${errors.phone ? "border-red-500 bg-red-500/10" : "border-border hover:border-primary/50"}`}
-                          />
-                        </div>
-                      </div>
-                      {errors.phone && <p className="mt-0.5 text-xs text-red-500">{errors.phone}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-card-foreground">Yoshingiz</label>
-                        <input
-                          type="number"
-                          name="age"
-                          value={formData.age}
-                          onChange={handleChange}
-                          placeholder="25"
-                          min="10"
-                          max="100"
-                          className={`h-10 w-full rounded-lg border-2 bg-muted px-3 text-sm text-foreground transition-all focus:outline-none focus:border-primary ${errors.age ? "border-red-500 bg-red-500/10" : "border-border hover:border-primary/50"}`}
-                        />
-                        {errors.age && <p className="mt-0.5 text-xs text-red-500">{errors.age}</p>}
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-xs font-medium text-card-foreground">Jinsingiz</label>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => { setFormData((prev) => ({ ...prev, gender: "54" })); if (errors.gender) setErrors((prev) => ({ ...prev, gender: "" })) }}
-                            className={`flex-1 h-10 rounded-lg border-2 text-sm font-medium transition-all ${formData.gender === "54" ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted text-muted-foreground hover:border-primary/50"}`}
-                          >
-                            Erkak
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => { setFormData((prev) => ({ ...prev, gender: "56" })); if (errors.gender) setErrors((prev) => ({ ...prev, gender: "" })) }}
-                            className={`flex-1 h-10 rounded-lg border-2 text-sm font-medium transition-all ${formData.gender === "56" ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted text-muted-foreground hover:border-primary/50"}`}
-                          >
-                            Ayol
-                          </button>
-                        </div>
-                        {errors.gender && <p className="mt-0.5 text-xs text-red-500">{errors.gender}</p>}
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleNextStep}
-                      className="w-full h-11 rounded-lg bg-primary text-background font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                    >
-                      Keyingi qadam
-                      <Icon name="arrow_forward" className="text-lg" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Step 2: Country and Level */}
-                {formStep === 2 && (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-card-foreground">Qaysi davlatda yashaysiz?</label>
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                          className={`h-10 w-full rounded-lg border-2 bg-muted px-3 text-left text-sm transition-all focus:outline-none flex items-center justify-between ${errors.country ? "border-red-500 bg-red-500/10" : "border-border hover:border-primary/50"}`}
-                        >
-                          <span className={formData.country ? "text-foreground" : "text-muted-foreground"}>
-                            {formData.country ? countriesWithCodes.find((c) => c.name === formData.country)?.flag + " " + formData.country : "Davlatni tanlang"}
-                          </span>
-                          <Icon name="expand_more" className="text-lg text-muted-foreground" />
-                        </button>
-                        {showCountryDropdown && (
-                          <div className="absolute left-0 top-full z-50 mt-1 max-h-48 w-full overflow-auto rounded-lg border-2 border-border bg-card shadow-xl">
-                            <input
-                              type="text"
-                              placeholder="Qidirish..."
-                              value={countrySearch}
-                              onChange={(e) => setCountrySearch(e.target.value)}
-                              className="sticky top-0 w-full border-b border-border bg-card px-3 py-2 text-sm focus:outline-none text-foreground"
-                            />
-                            {filteredCountries.map((c) => (
-                              <button
-                                key={c.code}
-                                type="button"
-                                onClick={() => { setFormData((prev) => ({ ...prev, country: c.name })); setShowCountryDropdown(false); setCountrySearch(""); if (errors.country) setErrors((prev) => ({ ...prev, country: "" })) }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-primary/10 text-sm text-foreground"
-                              >
-                                <span>{c.flag}</span>
-                                <span>{c.name}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      {errors.country && <p className="mt-0.5 text-xs text-red-500">{errors.country}</p>}
-                    </div>
-
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-card-foreground">Arab tili darajangiz</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {[
-                          { value: "44", label: "Nol" },
-                          { value: "46", label: "Boshlang'ich" },
-                          { value: "48", label: "O'rta" },
-                          { value: "50", label: "Yuqori" },
-                        ].map((level) => (
-                          <button
-                            key={level.value}
-                            type="button"
-                            onClick={() => { setFormData((prev) => ({ ...prev, level: level.value })); if (errors.level) setErrors((prev) => ({ ...prev, level: "" })) }}
-                            className={`h-10 rounded-lg border-2 text-sm font-medium transition-all ${formData.level === level.value ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted text-muted-foreground hover:border-primary/50"}`}
-                          >
-                            {level.label}
-                          </button>
-                        ))}
-                      </div>
-                      {errors.level && <p className="mt-0.5 text-xs text-red-500">{errors.level}</p>}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={handlePrevStep}
-                        className="flex-1 h-11 rounded-lg border-2 border-border bg-muted text-muted-foreground font-bold hover:border-primary/50 transition-all flex items-center justify-center gap-2"
-                      >
-                        <Icon name="arrow_back" className="text-lg" />
-                        Orqaga
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleNextStep}
-                        className="flex-1 h-11 rounded-lg bg-primary text-background font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                      >
-                        Keyingi
-                        <Icon name="arrow_forward" className="text-lg" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3: Contact */}
-                {formStep === 3 && (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-card-foreground">Qanday bog'lanaylik?</label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { value: "58", label: "Telefon", icon: "call" },
-                          { value: "60", label: "WhatsApp", icon: "chat" },
-                          { value: "62", label: "Telegram", icon: "send" },
-                        ].map((method) => (
-                          <button
-                            key={method.value}
-                            type="button"
-                            onClick={() => { setFormData((prev) => ({ ...prev, contactMethod: method.value })); if (errors.contactMethod) setErrors((prev) => ({ ...prev, contactMethod: "" })) }}
-                            className={`h-10 rounded-lg border-2 text-xs font-medium transition-all flex items-center justify-center gap-1 ${formData.contactMethod === method.value ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted text-muted-foreground hover:border-primary/50"}`}
-                          >
-                            <Icon name={method.icon} className="text-base" />
-                            {method.label}
-                          </button>
-                        ))}
-                      </div>
-                      {errors.contactMethod && <p className="mt-0.5 text-xs text-red-500">{errors.contactMethod}</p>}
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-medium text-card-foreground">WhatsApp raqamingiz</label>
-                        <button type="button" onClick={copyPhoneToWhatsApp} className="text-xs text-primary hover:underline">
-                          Telefon raqamni nusxalash
-                        </button>
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => setShowWhatsAppCountryDropdown(!showWhatsAppCountryDropdown)}
-                            className="flex h-10 w-20 items-center justify-center gap-1 rounded-lg border-2 border-border bg-muted hover:border-primary/50 transition-all"
-                          >
-                            <span className="text-base">{countriesWithCodes.find((c) => c.code === formData.whatsappCountry)?.flag}</span>
-                            <Icon name="expand_more" className="text-lg text-muted-foreground" />
-                          </button>
-                          {showWhatsAppCountryDropdown && (
-                            <div className="absolute left-0 top-full z-50 mt-1 max-h-48 w-64 overflow-auto rounded-lg border-2 border-border bg-card shadow-xl">
-                              <input
-                                type="text"
-                                placeholder="Qidirish..."
-                                value={whatsappCountrySearch}
-                                onChange={(e) => setWhatsappCountrySearch(e.target.value)}
-                                className="sticky top-0 w-full border-b border-border bg-card px-3 py-2 text-sm focus:outline-none text-foreground"
-                              />
-                              {filteredWhatsAppCountries.map((c) => (
-                                <button
-                                  key={c.code}
-                                  type="button"
-                                  onClick={() => { setFormData((prev) => ({ ...prev, whatsappCountry: c.code })); setShowWhatsAppCountryDropdown(false); setWhatsappCountrySearch("") }}
-                                  className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-primary/10 text-sm text-foreground"
-                                >
-                                  <span>{c.flag}</span>
-                                  <span>{c.name}</span>
-                                  <span className="ml-auto text-muted-foreground">{c.phoneCode}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                            {countriesWithCodes.find((c) => c.code === formData.whatsappCountry)?.phoneCode}
-                          </span>
-                          <input
-                            type="tel"
-                            value={formData.whatsapp}
-                            onChange={handleWhatsAppChange}
-                            placeholder="901234567"
-                            className={`h-10 w-full rounded-lg border-2 bg-muted pl-14 pr-3 text-sm text-foreground transition-all focus:outline-none focus:border-primary ${errors.whatsapp ? "border-red-500 bg-red-500/10" : "border-border hover:border-primary/50"}`}
-                          />
-                        </div>
-                      </div>
-                      {errors.whatsapp && <p className="mt-0.5 text-xs text-red-500">{errors.whatsapp}</p>}
-                    </div>
-
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-card-foreground">Telegram username</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
-                        <input
-                          type="text"
-                          name="telegram"
-                          value={formData.telegram}
-                          onChange={handleChange}
-                          placeholder="username"
-                          className={`h-10 w-full rounded-lg border-2 bg-muted pl-8 pr-3 text-sm text-foreground transition-all focus:outline-none focus:border-primary ${errors.telegram ? "border-red-500 bg-red-500/10" : "border-border hover:border-primary/50"}`}
-                        />
-                      </div>
-                      {errors.telegram && <p className="mt-0.5 text-xs text-red-500">{errors.telegram}</p>}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={handlePrevStep}
-                        className="flex-1 h-11 rounded-lg border-2 border-border bg-muted text-muted-foreground font-bold hover:border-primary/50 transition-all flex items-center justify-center gap-2"
-                      >
-                        <Icon name="arrow_back" className="text-lg" />
-                        Orqaga
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="flex-1 h-11 rounded-lg bg-primary text-background font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent" />
-                            Yuklanmoqda...
-                          </>
-                        ) : (
-                          <>
-                            <Icon name="check_circle" className="text-lg" />
-                            Yuborish
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </form>
-            </div>
-          </div>
-        </main>
-      </div>
-    )
-  }
-
-  // Courses catalog view
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md px-4 md:px-10 py-3">
-        <div className="max-w-[1440px] mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-3 text-foreground">
-              <div className="size-8 text-primary">
-                <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z" fill="currentColor" />
-                </svg>
-              </div>
-              <h2 className="text-foreground text-xl font-bold">Muhib Academy</h2>
-            </Link>
-            <nav className="hidden lg:flex items-center gap-6">
-              <Link href="/kurslar" className="text-foreground hover:text-primary transition-colors text-sm font-medium">Barcha kurslar</Link>
-              <Link href="/ustozlar" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">Ustozlarimiz</Link>
-              <Link href="/#haqida" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">Akademiya haqida</Link>
-              <Link href="/#contact" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium">Biz bilan bog'lanish</Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <label className="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
-              <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
-                <div className="text-muted-foreground flex border-none bg-muted items-center justify-center pl-4 rounded-l-lg">
-                  <Icon name="search" className="text-xl" />
-                </div>
-                <input className="form-input flex w-full min-w-0 flex-1 border-none bg-muted text-foreground focus:ring-0 h-full placeholder:text-muted-foreground px-4 rounded-r-lg text-sm" placeholder="Kurs qidirish..." />
-              </div>
-            </label>
-            <div className="flex gap-2">
-              <Link href="/darsliklar" className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-background text-sm font-bold hover:opacity-90 transition-opacity">
-                A'zo bo'lish
-              </Link>
-              <button className="hidden sm:flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-muted text-foreground text-sm font-bold hover:bg-muted/80 transition-colors">
-                Kirish
-              </button>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <Icon name="auto_stories" className="text-xl text-primary-foreground" />
             </div>
-            <button className="lg:hidden text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              <Icon name={mobileMenuOpen ? "close" : "menu"} className="text-2xl" />
+            <span className="font-bold text-lg text-white">Muhib Academy</span>
+          </Link>
+
+          <nav className="hidden lg:flex items-center gap-6">
+            <Link href="/kurslar" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Barcha kurslar</Link>
+            <Link href="/ustozlar" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Ustozlarimiz</Link>
+            <Link href="/#haqida" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Akademiya haqida</Link>
+            <Link href="/#contact" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Biz bilan bog'lanish</Link>
+          </nav>
+
+          <div className="hidden lg:flex items-center gap-3">
+            <div className="relative">
+              <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-lg" />
+              <input
+                type="text"
+                placeholder="Kurs qidirish..."
+                className="h-9 pl-9 pr-4 rounded-full bg-muted border border-border text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-1 focus:ring-primary w-48"
+              />
+            </div>
+            <Link href="/darsliklar" className="h-9 px-4 rounded-full bg-primary text-primary-foreground font-semibold text-sm flex items-center hover:bg-primary/90 transition-colors">
+              A'zo bo'lish
+            </Link>
+            <button type="button" className="h-9 px-4 rounded-full bg-white text-background font-semibold text-sm hover:bg-white/90 transition-colors">
+              Kirish
             </button>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden p-2 text-white"
+          >
+            <Icon name={mobileMenuOpen ? "close" : "menu"} className="text-2xl" />
+          </button>
         </div>
+
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-border mt-3 pt-3 pb-2">
-            <nav className="flex flex-col gap-2">
-              <Link href="/kurslar" className="text-foreground hover:text-primary transition-colors text-sm font-medium py-2">Barcha kurslar</Link>
-              <Link href="/ustozlar" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium py-2">Ustozlarimiz</Link>
-              <Link href="/#haqida" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium py-2">Akademiya haqida</Link>
-              <Link href="/#contact" className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium py-2">Biz bilan bog'lanish</Link>
+          <div className="lg:hidden bg-background border-t border-border/50 p-4">
+            <nav className="flex flex-col gap-3">
+              <Link href="/kurslar" className="text-white/70 hover:text-primary transition-colors text-sm font-medium py-2">Barcha kurslar</Link>
+              <Link href="/ustozlar" className="text-white/70 hover:text-primary transition-colors text-sm font-medium py-2">Ustozlarimiz</Link>
+              <Link href="/#haqida" className="text-white/70 hover:text-primary transition-colors text-sm font-medium py-2">Akademiya haqida</Link>
+              <Link href="/#contact" className="text-white/70 hover:text-primary transition-colors text-sm font-medium py-2">Biz bilan bog'lanish</Link>
+              <div className="flex gap-2 pt-2">
+                <Link href="/darsliklar" className="flex-1 h-10 rounded-full bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center">
+                  A'zo bo'lish
+                </Link>
+                <button type="button" className="flex-1 h-10 rounded-full bg-white text-background font-semibold text-sm">
+                  Kirish
+                </button>
+              </div>
             </nav>
           </div>
         )}
       </header>
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-background py-12 border-b border-border">
-        <div className="absolute inset-0 hero-pattern"></div>
-        <div className="max-w-[1440px] mx-auto px-4 md:px-10 relative z-10">
-          <div className="flex flex-wrap justify-between items-end gap-6">
-            <div className="max-w-2xl">
-              <h1 className="text-foreground text-4xl md:text-5xl font-black leading-tight tracking-tight mb-4">
-                Muqaddas ilmlarni <br /><span className="text-primary">istalgan joyda o'rganing.</span>
-              </h1>
-              <p className="text-muted-foreground text-lg font-normal leading-normal max-w-lg">
-                An'ana va zamonaviy ta'limning oqlangan sintezi. Dunyo darajasidagi olimlar tomonidan olib boriladigan kurslarni kashf eting.
-              </p>
-            </div>
-            <div className="flex gap-3 pb-2">
-              <div className="flex items-center gap-2 text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20">
-                <Icon name="verified" className="text-lg" />
-                <span className="text-sm font-semibold uppercase tracking-wider">Akkreditatsiyalangan dasturlar</span>
-              </div>
-            </div>
+      <section className="pt-24 pb-8 px-4 hero-pattern">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3">
+            Muqaddas ilmlarni<br />
+            <span className="text-primary">istalgan joyda o'rganing.</span>
+          </h1>
+          <p className="text-white/60 text-sm md:text-base max-w-xl mb-4">
+            An'ana va zamonaviy ta'limning oqlangan sintezi. Dunyo darajasidagi olimlar tomonidan olib boriladigan kurslarni kashf eting.
+          </p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+            <Icon name="verified" className="text-primary text-lg" />
+            <span className="text-primary text-sm font-medium">AKKREDITATSIYALANGAN DASTURLAR</span>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-[1440px] mx-auto w-full px-4 md:px-10 py-8">
-        {/* Courses Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {courses.map((course) => (
-            <div
-              key={course.slug}
-              className="group flex flex-col bg-card-dark border border-border rounded-xl overflow-hidden hover:border-primary/50 transition-all hover:-translate-y-1 cursor-pointer"
-              onClick={() => setSelectedCourse(course.slug)}
-            >
-              <div className="relative h-48 w-full overflow-hidden">
-                <div
-                  className="absolute inset-0 bg-cover bg-center group-hover:scale-110 transition-transform duration-500"
-                  style={{ backgroundImage: `url('${course.image || "/images/quran-hero.jpg"}')` }}
-                />
-                <div className="absolute top-3 left-3 bg-background/80 backdrop-blur px-3 py-1 rounded text-[10px] font-bold uppercase text-primary border border-primary/20 tracking-widest">
-                  {course.category || "Arab tili"}
-                </div>
-                {course.is_bestseller && (
-                  <div className="absolute bottom-3 right-3 bg-yellow-500 text-black text-[10px] font-black px-2 py-1 rounded flex items-center gap-1 uppercase tracking-tighter">
-                    <Icon name="star" className="text-xs" style={{ fontVariationSettings: "'FILL' 1" }} /> Eng ko'p sotilgan
+      <main className="px-4 pb-16">
+        <div className="max-w-7xl mx-auto">
+          {/* Course Selected - Detail View */}
+          {selectedCourse && selectedCourseData ? (
+            <div className="space-y-8">
+              {/* Back Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCourse(null)
+                  setFormStep(1)
+                  setSubmitSuccess(false)
+                  setErrors({})
+                }}
+                className="flex items-center gap-2 text-white/70 hover:text-primary transition-colors"
+              >
+                <Icon name="arrow_back" className="text-xl" />
+                <span className="text-sm font-medium">Barcha kurslarga qaytish</span>
+              </button>
+
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* Left Column - Course Info */}
+                <div className="space-y-6">
+                  {/* Video */}
+                  {selectedCourseData.video_url && (
+                    <div className="aspect-video rounded-2xl overflow-hidden bg-muted">
+                      <iframe
+                        src={getYouTubeEmbedUrl(selectedCourseData.video_url)}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+
+                  {/* Course Card */}
+                  <div className="card-dark p-6 space-y-4">
+                    <span className="category-badge">{getCategoryLabel(selectedCourseData.category)}</span>
+                    <h2 className="text-2xl font-bold text-white">{selectedCourseData.title}</h2>
+                    <p className="text-white/60">{selectedCourseData.description}</p>
+
+                    {/* Instructor */}
+                    {selectedCourseData.instructor && (
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-muted overflow-hidden">
+                          {selectedCourseData.instructor.image_url ? (
+                            <Image
+                              src={selectedCourseData.instructor.image_url}
+                              alt={selectedCourseData.instructor.name}
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-primary/20">
+                              <Icon name="person" className="text-primary text-xl" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-white">{selectedCourseData.instructor.name}</p>
+                          <p className="text-sm text-white/60">{selectedCourseData.instructor.specialty}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Features */}
+                    <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
+                      <div className="flex items-center gap-2">
+                        <Icon name="schedule" className="text-primary text-lg" />
+                        <span className="text-sm text-white/70">3 ta bepul dars</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="workspace_premium" className="text-primary text-lg" />
+                        <span className="text-sm text-white/70">Sertifikat</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="videocam" className="text-primary text-lg" />
+                        <span className="text-sm text-white/70">Jonli darslar</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="support_agent" className="text-primary text-lg" />
+                        <span className="text-sm text-white/70">24/7 qo'llab-quvvatlash</span>
+                      </div>
+                    </div>
                   </div>
-                )}
+                </div>
+
+                {/* Right Column - Form */}
+                <div className="card-dark p-6">
+                  {submitSuccess ? (
+                    <div className="text-center py-12 space-y-4">
+                      <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
+                        <Icon name="check_circle" className="text-5xl text-primary" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-white">Tabriklaymiz!</h3>
+                      <p className="text-white/60">Ro'yxatdan muvaffaqiyatli o'tdingiz</p>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                        <Icon name="hourglass_top" className="text-primary animate-spin" />
+                        <span className="text-primary font-medium">{redirectCountdown} soniyada Telegram botga yo'naltirilasiz</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Progress Steps */}
+                      <div className="flex items-center justify-center gap-2 mb-8">
+                        {[1, 2, 3].map((step) => (
+                          <div key={step} className="flex items-center">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                              formStep >= step ? "bg-primary text-primary-foreground" : "bg-muted text-white/50"
+                            }`}>
+                              {step}
+                            </div>
+                            {step < 3 && (
+                              <div className={`w-16 h-1 mx-1 rounded transition-colors ${
+                                formStep > step ? "bg-primary" : "bg-muted"
+                              }`} />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Step 1 */}
+                      {formStep === 1 && (
+                        <div className="space-y-4">
+                          <h3 className="text-xl font-bold text-white mb-6">Shaxsiy ma'lumotlar</h3>
+                          
+                          <div>
+                            <label className="block text-sm text-white/70 mb-2">Ismingiz</label>
+                            <input
+                              type="text"
+                              name="name"
+                              value={formData.name}
+                              onChange={handleChange}
+                              placeholder="To'liq ismingiz"
+                              className="form-input"
+                            />
+                            {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+                          </div>
+
+                          <div>
+                            <label className="block text-sm text-white/70 mb-2">Telefon raqam</label>
+                            <div className="flex gap-2">
+                              <div className="relative">
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPhoneCountryDropdown(!showPhoneCountryDropdown)}
+                                  className="h-12 px-3 rounded-xl bg-muted border border-border text-white flex items-center gap-2"
+                                >
+                                  <span>{countriesWithCodes.find(c => c.code === formData.phoneCountry)?.flag}</span>
+                                  <span className="text-sm">{countriesWithCodes.find(c => c.code === formData.phoneCountry)?.phoneCode}</span>
+                                  <Icon name="expand_more" className="text-lg" />
+                                </button>
+                                {showPhoneCountryDropdown && (
+                                  <div className="absolute top-full left-0 mt-1 w-64 bg-card border border-border rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+                                    <input
+                                      type="text"
+                                      placeholder="Qidirish..."
+                                      value={phoneCountrySearch}
+                                      onChange={(e) => setPhoneCountrySearch(e.target.value)}
+                                      className="w-full h-10 px-3 bg-muted border-b border-border text-white text-sm"
+                                    />
+                                    {countriesWithCodes
+                                      .filter(c => c.name.toLowerCase().includes(phoneCountrySearch.toLowerCase()))
+                                      .map((country) => (
+                                        <button
+                                          key={country.code}
+                                          type="button"
+                                          onClick={() => {
+                                            setFormData(prev => ({ ...prev, phoneCountry: country.code }))
+                                            setShowPhoneCountryDropdown(false)
+                                            setPhoneCountrySearch("")
+                                          }}
+                                          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-muted text-white text-sm"
+                                        >
+                                          <span>{country.flag}</span>
+                                          <span>{country.name}</span>
+                                          <span className="text-white/50 ml-auto">{country.phoneCode}</span>
+                                        </button>
+                                      ))}
+                                  </div>
+                                )}
+                              </div>
+                              <input
+                                type="tel"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handlePhoneChange}
+                                placeholder="Telefon raqamingiz"
+                                className="form-input flex-1"
+                              />
+                            </div>
+                            {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm text-white/70 mb-2">Yoshingiz</label>
+                              <input
+                                type="number"
+                                name="age"
+                                value={formData.age}
+                                onChange={handleChange}
+                                placeholder="Yosh"
+                                className="form-input"
+                              />
+                              {errors.age && <p className="text-red-400 text-xs mt-1">{errors.age}</p>}
+                            </div>
+                            <div>
+                              <label className="block text-sm text-white/70 mb-2">Jinsingiz</label>
+                              <select
+                                name="gender"
+                                value={formData.gender}
+                                onChange={handleChange}
+                                className="form-input"
+                              >
+                                <option value="">Tanlang</option>
+                                <option value="54">Erkak</option>
+                                <option value="56">Ayol</option>
+                              </select>
+                              {errors.gender && <p className="text-red-400 text-xs mt-1">{errors.gender}</p>}
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleNextStep}
+                            className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors mt-4"
+                          >
+                            Davom etish
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Step 2 */}
+                      {formStep === 2 && (
+                        <div className="space-y-4">
+                          <h3 className="text-xl font-bold text-white mb-6">Ta'lim ma'lumotlari</h3>
+
+                          <div>
+                            <label className="block text-sm text-white/70 mb-2">Davlatingiz</label>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                                className="form-input w-full text-left flex items-center justify-between"
+                              >
+                                <span>{formData.country || "Davlatni tanlang"}</span>
+                                <Icon name="expand_more" className="text-lg" />
+                              </button>
+                              {showCountryDropdown && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+                                  <input
+                                    type="text"
+                                    placeholder="Qidirish..."
+                                    value={countrySearch}
+                                    onChange={(e) => setCountrySearch(e.target.value)}
+                                    className="w-full h-10 px-3 bg-muted border-b border-border text-white text-sm"
+                                  />
+                                  {countriesWithCodes
+                                    .filter(c => c.name.toLowerCase().includes(countrySearch.toLowerCase()))
+                                    .map((country) => (
+                                      <button
+                                        key={country.code}
+                                        type="button"
+                                        onClick={() => {
+                                          setFormData(prev => ({ ...prev, country: country.name }))
+                                          setShowCountryDropdown(false)
+                                          setCountrySearch("")
+                                        }}
+                                        className="w-full px-3 py-2 flex items-center gap-2 hover:bg-muted text-white text-sm"
+                                      >
+                                        <span>{country.flag}</span>
+                                        <span>{country.name}</span>
+                                      </button>
+                                    ))}
+                                </div>
+                              )}
+                            </div>
+                            {errors.country && <p className="text-red-400 text-xs mt-1">{errors.country}</p>}
+                          </div>
+
+                          <div>
+                            <label className="block text-sm text-white/70 mb-2">Arab tili darajangiz</label>
+                            <select
+                              name="level"
+                              value={formData.level}
+                              onChange={handleChange}
+                              className="form-input"
+                            >
+                              <option value="">Tanlang</option>
+                              <option value="beginner">Boshlang'ich (Hech narsa bilmayman)</option>
+                              <option value="elementary">Oddiy (Harflarni bilaman)</option>
+                              <option value="intermediate">O'rta (O'qiy olaman)</option>
+                              <option value="advanced">Yuqori (Yaxshi gaplashaman)</option>
+                            </select>
+                            {errors.level && <p className="text-red-400 text-xs mt-1">{errors.level}</p>}
+                          </div>
+
+                          <div className="flex gap-3 mt-6">
+                            <button
+                              type="button"
+                              onClick={handlePrevStep}
+                              className="flex-1 h-12 rounded-xl bg-muted text-white font-bold hover:bg-muted/80 transition-colors"
+                            >
+                              Ortga
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleNextStep}
+                              className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors"
+                            >
+                              Davom etish
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Step 3 */}
+                      {formStep === 3 && (
+                        <div className="space-y-4">
+                          <h3 className="text-xl font-bold text-white mb-6">Bog'lanish ma'lumotlari</h3>
+
+                          <div>
+                            <label className="block text-sm text-white/70 mb-2">Qanday bog'lanishni xohlaysiz?</label>
+                            <div className="grid grid-cols-2 gap-3">
+                              {[
+                                { value: "telegram", label: "Telegram", icon: "send" },
+                                { value: "whatsapp", label: "WhatsApp", icon: "chat" },
+                                { value: "phone", label: "Telefon", icon: "call" },
+                                { value: "any", label: "Farqi yo'q", icon: "done_all" },
+                              ].map((method) => (
+                                <button
+                                  key={method.value}
+                                  type="button"
+                                  onClick={() => setFormData(prev => ({ ...prev, contactMethod: method.value }))}
+                                  className={`h-12 rounded-xl flex items-center justify-center gap-2 font-medium transition-colors ${
+                                    formData.contactMethod === method.value
+                                      ? "bg-primary text-primary-foreground"
+                                      : "bg-muted text-white hover:bg-muted/80"
+                                  }`}
+                                >
+                                  <Icon name={method.icon} className="text-lg" />
+                                  {method.label}
+                                </button>
+                              ))}
+                            </div>
+                            {errors.contactMethod && <p className="text-red-400 text-xs mt-1">{errors.contactMethod}</p>}
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="text-sm text-white/70">WhatsApp raqamingiz</label>
+                              <button
+                                type="button"
+                                onClick={copyPhoneToWhatsApp}
+                                className="text-xs text-primary hover:underline"
+                              >
+                                Telefon raqamdan nusxalash
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
+                              <div className="relative">
+                                <button
+                                  type="button"
+                                  onClick={() => setShowWhatsAppCountryDropdown(!showWhatsAppCountryDropdown)}
+                                  className="h-12 px-3 rounded-xl bg-muted border border-border text-white flex items-center gap-2"
+                                >
+                                  <span>{countriesWithCodes.find(c => c.code === formData.whatsappCountry)?.flag}</span>
+                                  <span className="text-sm">{countriesWithCodes.find(c => c.code === formData.whatsappCountry)?.phoneCode}</span>
+                                  <Icon name="expand_more" className="text-lg" />
+                                </button>
+                                {showWhatsAppCountryDropdown && (
+                                  <div className="absolute top-full left-0 mt-1 w-64 bg-card border border-border rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+                                    <input
+                                      type="text"
+                                      placeholder="Qidirish..."
+                                      value={whatsappCountrySearch}
+                                      onChange={(e) => setWhatsappCountrySearch(e.target.value)}
+                                      className="w-full h-10 px-3 bg-muted border-b border-border text-white text-sm"
+                                    />
+                                    {countriesWithCodes
+                                      .filter(c => c.name.toLowerCase().includes(whatsappCountrySearch.toLowerCase()))
+                                      .map((country) => (
+                                        <button
+                                          key={country.code}
+                                          type="button"
+                                          onClick={() => {
+                                            setFormData(prev => ({ ...prev, whatsappCountry: country.code }))
+                                            setShowWhatsAppCountryDropdown(false)
+                                            setWhatsappCountrySearch("")
+                                          }}
+                                          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-muted text-white text-sm"
+                                        >
+                                          <span>{country.flag}</span>
+                                          <span>{country.name}</span>
+                                          <span className="text-white/50 ml-auto">{country.phoneCode}</span>
+                                        </button>
+                                      ))}
+                                  </div>
+                                )}
+                              </div>
+                              <input
+                                type="tel"
+                                name="whatsapp"
+                                value={formData.whatsapp}
+                                onChange={handleWhatsAppChange}
+                                placeholder="WhatsApp raqamingiz"
+                                className="form-input flex-1"
+                              />
+                            </div>
+                            {errors.whatsapp && <p className="text-red-400 text-xs mt-1">{errors.whatsapp}</p>}
+                          </div>
+
+                          <div>
+                            <label className="block text-sm text-white/70 mb-2">Telegram username</label>
+                            <div className="relative">
+                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50">@</span>
+                              <input
+                                type="text"
+                                name="telegram"
+                                value={formData.telegram}
+                                onChange={handleChange}
+                                placeholder="username"
+                                className="form-input pl-8"
+                              />
+                            </div>
+                            {errors.telegram && <p className="text-red-400 text-xs mt-1">{errors.telegram}</p>}
+                          </div>
+
+                          <div className="flex gap-3 mt-6">
+                            <button
+                              type="button"
+                              onClick={handlePrevStep}
+                              className="flex-1 h-12 rounded-xl bg-muted text-white font-bold hover:bg-muted/80 transition-colors"
+                            >
+                              Ortga
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleSubmit}
+                              disabled={isSubmitting}
+                              className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                              {isSubmitting ? (
+                                <>
+                                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                                  Yuborilmoqda...
+                                </>
+                              ) : (
+                                "Ro'yxatdan o'tish"
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="p-5 flex flex-col flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <div
-                    className="size-6 rounded-full bg-cover bg-center border border-primary/30"
-                    style={{ backgroundImage: `url('${course.instructor?.image || "/placeholder-user.jpg"}')` }}
-                  />
-                  <span className="text-xs text-muted-foreground">{course.instructor?.name || "Ustoz"}</span>
-                </div>
-                <h3 className="text-foreground text-lg font-bold leading-tight mb-2 group-hover:text-primary transition-colors">
-                  {course.title}
-                </h3>
-                <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
-                  {course.description}
-                </p>
-                <div className="mt-auto flex flex-col gap-4">
-                  <div className="flex items-center gap-2 text-primary font-bold text-sm">
-                    <Icon name="redeem" className="text-lg" />
-                    3 ta bepul dars mavjud
-                  </div>
-                  <button className="w-full rounded-lg h-11 px-4 bg-primary text-background text-sm font-bold hover:bg-white transition-colors">
-                    3 ta bepul darsni boshlash
-                  </button>
+
+              {/* FAQ Section */}
+              <div className="max-w-3xl mx-auto">
+                <h3 className="text-2xl font-bold text-white text-center mb-8">Ko'p so'raladigan savollar</h3>
+                <div className="space-y-3">
+                  {faqs.map((faq, index) => (
+                    <div key={index} className="card-dark overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                        className="w-full p-4 flex items-center justify-between text-left"
+                      >
+                        <span className="font-medium text-white">{faq.question}</span>
+                        <Icon
+                          name={openFaq === index ? "expand_less" : "expand_more"}
+                          className="text-xl text-white/50 flex-shrink-0"
+                        />
+                      </button>
+                      {openFaq === index && (
+                        <div className="px-4 pb-4">
+                          <p className="text-white/60 text-sm">{faq.answer}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-foreground text-center mb-8">
-            Tez-tez beriladigan savollar
-          </h2>
-          <div className="max-w-2xl mx-auto space-y-3">
-            {faqs.map((faq, idx) => (
-              <div key={idx} className="rounded-xl border border-border bg-card-dark overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full flex items-center justify-between p-4 text-left"
-                >
-                  <span className="font-medium text-foreground">{faq.question}</span>
-                  <Icon name={openFaq === idx ? "expand_less" : "expand_more"} className="text-xl text-muted-foreground" />
-                </button>
-                {openFaq === idx && (
-                  <div className="px-4 pb-4 text-muted-foreground text-sm">
-                    {faq.answer}
-                  </div>
-                )}
+          ) : (
+            /* Courses Grid */
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-white/50 text-sm">
+                  Katalogdan {courses.length} ta natija ko'rsatilmoqda
+                </p>
               </div>
-            ))}
-          </div>
+
+              {isLoadingCourses ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="course-card animate-pulse">
+                      <div className="aspect-[4/3] bg-muted rounded-t-xl" />
+                      <div className="p-4 space-y-3">
+                        <div className="h-4 bg-muted rounded w-20" />
+                        <div className="h-6 bg-muted rounded w-3/4" />
+                        <div className="h-4 bg-muted rounded w-full" />
+                        <div className="h-10 bg-muted rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : courses.length === 0 ? (
+                <div className="text-center py-16">
+                  <Icon name="school" className="text-6xl text-white/20 mb-4" />
+                  <p className="text-white/50">Hozircha kurslar mavjud emas</p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {courses.map((course) => (
+                    <div key={course.slug} className="course-card group">
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl">
+                        {course.image_url ? (
+                          <Image
+                            src={course.image_url}
+                            alt={course.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                            <Icon name="auto_stories" className="text-5xl text-primary/50" />
+                          </div>
+                        )}
+                        <span className="category-badge absolute top-3 left-3">
+                          {getCategoryLabel(course.category)}
+                        </span>
+                        {course.has_free_consultation && (
+                          <span className="absolute top-3 right-3 px-3 py-1 rounded-full bg-white text-background text-xs font-medium flex items-center gap-1">
+                            <Icon name="headset_mic" className="text-sm" />
+                            Bepul maslahat
+                          </span>
+                        )}
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {/* Instructor */}
+                        {course.instructor && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-muted overflow-hidden">
+                              {course.instructor.image_url ? (
+                                <Image
+                                  src={course.instructor.image_url}
+                                  alt={course.instructor.name}
+                                  width={24}
+                                  height={24}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-primary/20">
+                                  <Icon name="person" className="text-primary text-xs" />
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-xs text-white/60">{course.instructor.name}</span>
+                          </div>
+                        )}
+                        
+                        <h3 className="font-bold text-white line-clamp-2">{course.title}</h3>
+                        <p className="text-sm text-white/60 line-clamp-2">{course.description}</p>
+                        
+                        <div className="flex items-center gap-1 text-primary text-sm">
+                          <Icon name="calendar_month" className="text-base" />
+                          <span>3 ta bepul dars mavjud</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCourse(course.slug)}
+                          className="w-full h-10 rounded-xl bg-transparent border border-primary text-primary font-bold hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
+                        >
+                          3 ta bepul darsni boshlash
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-background px-4 md:px-10 py-12">
-        <div className="max-w-[1440px] mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="border-t border-border bg-card-dark">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="size-8 text-primary">
-                  <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z" fill="currentColor" />
-                  </svg>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <Icon name="auto_stories" className="text-xl text-primary-foreground" />
                 </div>
-                <span className="text-foreground font-bold">Muhib Academy</span>
+                <span className="font-bold text-lg text-white">Muhib Academy</span>
               </div>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-white/50 text-sm mb-4">
                 Islomning boqiylik hikmati bilan ongni yoritish. Izlanuvchilarning global hamjamiyati uchun zamonaviy platforma.
               </p>
+              <div className="flex gap-3">
+                <a href="#" className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-white/50 hover:text-primary transition-colors">
+                  <Icon name="language" className="text-lg" />
+                </a>
+                <a href="#" className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-white/50 hover:text-primary transition-colors">
+                  <Icon name="group" className="text-lg" />
+                </a>
+                <a href="#" className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-white/50 hover:text-primary transition-colors">
+                  <Icon name="mail" className="text-lg" />
+                </a>
+              </div>
             </div>
+
             <div>
-              <h4 className="text-foreground font-bold mb-4">Ta'lim</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/kurslar" className="hover:text-primary transition-colors">Barcha kurslar</Link></li>
-                <li><Link href="/darsliklar" className="hover:text-primary transition-colors">Ilmiy daraja dasturlari</Link></li>
-                <li><Link href="/darsliklar" className="hover:text-primary transition-colors">Qisqa kurslar</Link></li>
-                <li><Link href="/darsliklar" className="hover:text-primary transition-colors">Bepul ma'ruzalar</Link></li>
+              <h4 className="font-bold text-white mb-4">Ta'lim</h4>
+              <ul className="space-y-2">
+                <li><Link href="/kurslar" className="text-white/50 hover:text-primary text-sm transition-colors">Barcha kurslar</Link></li>
+                <li><Link href="/darsliklar" className="text-white/50 hover:text-primary text-sm transition-colors">Ilmiy daraja dasturlari</Link></li>
+                <li><Link href="/darsliklar" className="text-white/50 hover:text-primary text-sm transition-colors">Qisqa kurslar</Link></li>
+                <li><Link href="/darsliklar" className="text-white/50 hover:text-primary text-sm transition-colors">Bepul ma'ruzalar</Link></li>
               </ul>
             </div>
+
             <div>
-              <h4 className="text-foreground font-bold mb-4">Akademiya</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/#haqida" className="hover:text-primary transition-colors">Akademiya haqida</Link></li>
-                <li><Link href="/ustozlar" className="hover:text-primary transition-colors">Ustozlarimiz</Link></li>
-                <li><Link href="/#contact" className="hover:text-primary transition-colors">Biz bilan bog'lanish</Link></li>
+              <h4 className="font-bold text-white mb-4">Akademiya</h4>
+              <ul className="space-y-2">
+                <li><Link href="/#haqida" className="text-white/50 hover:text-primary text-sm transition-colors">Akademiya haqida</Link></li>
+                <li><Link href="/ustozlar" className="text-white/50 hover:text-primary text-sm transition-colors">Ustozlarimiz</Link></li>
+                <li><Link href="/#" className="text-white/50 hover:text-primary text-sm transition-colors">Qabul</Link></li>
+                <li><Link href="/#contact" className="text-white/50 hover:text-primary text-sm transition-colors">Biz bilan bog'lanish</Link></li>
               </ul>
             </div>
+
             <div>
-              <h4 className="text-foreground font-bold mb-4">Yangiliklardan xabardor bo'ling</h4>
-              <p className="text-muted-foreground text-sm mb-3">Kurslar va yangiliklar uchun obuna bo'ling.</p>
+              <h4 className="font-bold text-white mb-4">Yangiliklardan xabardor bo'ling</h4>
+              <p className="text-white/50 text-sm mb-3">Kurslar va yangiliklar uchun obuna bo'ling.</p>
               <div className="flex gap-2">
                 <input
                   type="email"
                   placeholder="Elektron pochta manzili"
-                  className="flex-1 h-10 rounded-lg border border-border bg-muted px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                  className="flex-1 h-10 px-3 rounded-lg bg-muted border border-border text-white text-sm placeholder:text-white/50"
                 />
-                <button className="h-10 px-4 rounded-lg bg-primary text-background font-bold text-sm hover:opacity-90 transition-opacity">
+                <button type="button" className="h-10 px-4 rounded-lg bg-primary text-primary-foreground font-semibold text-sm">
                   QO'SHILISH
                 </button>
               </div>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-border flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
-            <p>© 2024 Muhib Academy. Barcha huquqlar himoyalangan.</p>
-            <div className="flex gap-4">
-              <Link href="#" className="hover:text-primary transition-colors">Maxfiylik siyosati</Link>
-              <Link href="#" className="hover:text-primary transition-colors">Xizmat ko'rsatish shartlari</Link>
-              <Link href="#" className="hover:text-primary transition-colors">Yordam</Link>
+
+          <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-white/50 text-sm">© 2024 Muhib Academy. Barcha huquqlar himoyalangan.</p>
+            <div className="flex gap-6">
+              <a href="#" className="text-white/50 hover:text-primary text-sm transition-colors">Maxfiylik siyosati</a>
+              <a href="#" className="text-white/50 hover:text-primary text-sm transition-colors">Xizmat ko'rsatish shartlari</a>
+              <a href="#" className="text-white/50 hover:text-primary text-sm transition-colors">Yordam</a>
             </div>
           </div>
         </div>
       </footer>
 
-      {/* Floating Action Button */}
+      {/* Floating Contact Button */}
       <a
         href="https://t.me/MuhibAcademyBot"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-primary text-background px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+        className="fixed bottom-6 right-6 h-12 px-5 rounded-full bg-primary text-primary-foreground font-semibold flex items-center gap-2 shadow-lg hover:scale-105 transition-transform z-40"
       >
         <Icon name="headset_mic" className="text-xl" />
-        <span className="font-bold text-sm">Bog'lanish</span>
+        <span className="hidden sm:inline">Bog'lanish</span>
       </a>
     </div>
   )

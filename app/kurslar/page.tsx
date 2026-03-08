@@ -145,7 +145,7 @@ export default function KurslarPage() {
               <Link href="/kurslar" className="text-white hover:text-primary transition-colors text-sm font-medium">Barcha kurslar</Link>
               <Link href="/ustozlar" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Ustozlarimiz</Link>
               <Link href="/#haqida" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Akademiya haqida</Link>
-              <Link href="/#faq" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Biz bilan bog'lanish</Link>
+              <Link href="/#contact" className="text-white/70 hover:text-primary transition-colors text-sm font-medium">Biz bilan bog'lanish</Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
@@ -212,6 +212,7 @@ export default function KurslarPage() {
                   {categories.map((cat) => (
                     <button
                       key={cat.id}
+                      type="button"
                       onClick={() => setSelectedCategory(cat.id as Category)}
                       className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors cursor-pointer ${
                         selectedCategory === cat.id
@@ -241,6 +242,7 @@ export default function KurslarPage() {
                   {levels.map((level) => (
                     <button
                       key={level.id}
+                      type="button"
                       onClick={() => setSelectedLevel(level.id as Level)}
                       className={`level-badge ${selectedLevel === level.id ? "level-badge-active" : ""}`}
                     >
@@ -251,6 +253,7 @@ export default function KurslarPage() {
               </div>
 
               <button
+                type="button"
                 onClick={() => {
                   setSelectedCategory("all")
                   setSelectedLevel("all")
@@ -268,11 +271,11 @@ export default function KurslarPage() {
           <div className="flex-1 flex flex-col gap-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex gap-2">
-                <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-muted px-4 hover:bg-muted/80 transition-colors">
+                <button type="button" className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-muted px-4 hover:bg-muted/80 transition-colors">
                   <span className="text-xs font-medium">Avval yangilari</span>
                   <Icon name="expand_more" className="text-lg" />
                 </button>
-                <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-muted px-4 hover:bg-muted/80 transition-colors">
+                <button type="button" className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-muted px-4 hover:bg-muted/80 transition-colors">
                   <span className="text-xs font-medium">Yo'nalish</span>
                   <Icon name="filter_alt" className="text-lg" />
                 </button>
@@ -333,13 +336,13 @@ export default function KurslarPage() {
             {/* Pagination */}
             {filteredCourses.length > 0 && (
               <div className="flex justify-center gap-2 mt-8">
-                <button className="pagination-btn pagination-btn-inactive">
+                <button type="button" className="pagination-btn pagination-btn-inactive">
                   <Icon name="chevron_left" />
                 </button>
-                <button className="pagination-btn pagination-btn-active">1</button>
-                <button className="pagination-btn pagination-btn-inactive">2</button>
-                <button className="pagination-btn pagination-btn-inactive">3</button>
-                <button className="pagination-btn pagination-btn-inactive">
+                <button type="button" className="pagination-btn pagination-btn-active">1</button>
+                <button type="button" className="pagination-btn pagination-btn-inactive">2</button>
+                <button type="button" className="pagination-btn pagination-btn-inactive">3</button>
+                <button type="button" className="pagination-btn pagination-btn-inactive">
                   <Icon name="chevron_right" />
                 </button>
               </div>

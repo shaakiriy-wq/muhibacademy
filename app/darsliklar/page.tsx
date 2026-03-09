@@ -106,7 +106,18 @@ export default function DarsliklarPage() {
   const [showWhatsAppCountryDropdown, setShowWhatsAppCountryDropdown] = useState(false)
   const [whatsappCountrySearch, setWhatsappCountrySearch] = useState("")
 
-  const selectedCourseData = courses.find((c) => c.slug === selectedCourse) || null
+  // Always show Muhibulloh Nuronov as the instructor
+  const MUHIBULLOH = {
+    name: "Muhibulloh Nuronov",
+    specialty: "Arab tili va Islom ilmlari ustozi",
+    image_url: "https://lh3.googleusercontent.com/aida-public/AB6AXuCeqacFy2T5PV8tPqAT2HawNY6fMDITCmUhYLbPyt5-PkHof2KTFZ4XAPI4qwNdaqAZWUSKTLCE9ZI36TdVFv0D96F1AJhAOCaKachXl6geIV7vz47JFfG8QhfZjJBUHmOHjGg83L7UK701JkeOACyGXMP3r7DUOeJwqS4Zq_4Ev5f1Znt15Odt0FYmo5Fl6Mrbi17HHGAKro7rf1eIrtzv2SlyQzI0BDvVmNsgkXrt0MirqVQ9jXemFW6kZNMksmUKXhaMARQ3DKc",
+  }
+
+  const selectedCourseData = courses.find((c) => c.slug === selectedCourse)
+    ? { ...courses.find((c) => c.slug === selectedCourse), instructor: MUHIBULLOH }
+    : null
+
+  const coursesWithInstructor = courses.map((c) => ({ ...c, instructor: MUHIBULLOH }))
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -517,55 +528,66 @@ export default function DarsliklarPage() {
                 </div>
 
                 {/* Right Column - Form */}
-                <div className="card-dark p-6">
+                <div className="card-dark p-6 md:p-8">
                   {submitSuccess ? (
-                    <div className="text-center py-12 space-y-4">
-                      <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
-                        <Icon name="check_circle" className="text-5xl text-primary" />
+                    <div className="text-center py-16 space-y-5">
+                      <div className="w-24 h-24 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center mx-auto">
+                        <Icon name="check_circle" className="text-6xl text-primary" />
                       </div>
                       <h3 className="text-2xl font-bold text-white">Tabriklaymiz!</h3>
-                      <p className="text-white/60">Ro'yxatdan muvaffaqiyatli o'tdingiz</p>
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-                        <Icon name="hourglass_top" className="text-primary animate-spin" />
-                        <span className="text-primary font-medium">{redirectCountdown} soniyada Telegram botga yo'naltirilasiz</span>
+                      <p className="text-white/55">Ro'yxatdan muvaffaqiyatli o'tdingiz</p>
+                      <div className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary/10 border border-primary/20">
+                        <div className="w-4 h-4 border-2 border-primary/40 border-t-primary rounded-full animate-spin" />
+                        <span className="text-primary font-semibold">{redirectCountdown} soniyada Telegram botga yo'naltirilasiz</span>
                       </div>
                     </div>
                   ) : (
                     <>
-                      {/* Progress Steps */}
-                      <div className="flex items-center justify-center gap-2 mb-8">
-                        {[1, 2, 3].map((step) => (
-                          <div key={step} className="flex items-center">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                              formStep >= step ? "bg-primary text-primary-foreground" : "bg-muted text-white/50"
-                            }`}>
-                              {step}
-                            </div>
-                            {step < 3 && (
-                              <div className={`w-16 h-1 mx-1 rounded transition-colors ${
-                                formStep > step ? "bg-primary" : "bg-muted"
-                              }`} />
-                            )}
-                          </div>
-                        ))}
+                      {/* Step labels */}
+                      <div className="mb-8">
+                        <div className="flex items-center justify-between mb-3">
+                          {["Shaxsiy", "Ta'lim", "Bog'lanish"].map((label, i) => {
+                            const step = i + 1
+                            return (
+                              <div key={step} className="flex items-center gap-1.5">
+                                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                  formStep > step
+                                    ? "bg-primary text-primary-foreground"
+                                    : formStep === step
+                                    ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
+                                    : "bg-white/10 text-white/40"
+                                }`}>
+                                  {formStep > step ? <Icon name="check" className="text-sm" /> : step}
+                                </div>
+                                <span className={`text-xs font-medium hidden sm:block ${formStep === step ? "text-primary" : "text-white/40"}`}>
+                                  {label}
+                                </span>
+                                {step < 3 && <div className={`flex-1 h-0.5 mx-3 rounded transition-colors ${formStep > step ? "bg-primary" : "bg-white/10"}`} style={{ width: "3rem" }} />}
+                              </div>
+                            )
+                          })}
+                        </div>
                       </div>
 
                       {/* Step 1 */}
                       {formStep === 1 && (
-                        <div className="space-y-4">
-                          <h3 className="text-xl font-bold text-white mb-6">Shaxsiy ma'lumotlar</h3>
-                          
+                        <div className="space-y-5">
                           <div>
-                            <label className="block text-sm text-white/70 mb-2">Ismingiz</label>
+                            <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">1-qadam</p>
+                            <h3 className="text-xl font-bold text-white">Shaxsiy ma'lumotlar</h3>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-white/70 mb-1.5">To'liq ismingiz</label>
                             <input
                               type="text"
                               name="name"
                               value={formData.name}
                               onChange={handleChange}
-                              placeholder="To'liq ismingiz"
-                              className="form-input"
+                              placeholder="Ism Familiya"
+                              className="form-input-dark w-full"
                             />
-                            {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+                            {errors.name && <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1"><Icon name="error" className="text-sm" />{errors.name}</p>}
                           </div>
 
                           <div>
@@ -617,22 +639,9 @@ export default function DarsliklarPage() {
                                 value={formData.phone}
                                 onChange={handlePhoneChange}
                                 placeholder="Telefon raqamingiz"
-                                className="form-input flex-1"
-                              />
-                            </div>
-                            {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm text-white/70 mb-2">Yoshingiz</label>
-                              <input
-                                type="number"
-                                name="age"
-                                value={formData.age}
-                                onChange={handleChange}
-                                placeholder="Yosh"
-                                className="form-input"
+className="form-input-dark flex-1"
+                                className="form-input-dark w-full"
+                                className="form-input-dark w-full"
                               />
                               {errors.age && <p className="text-red-400 text-xs mt-1">{errors.age}</p>}
                             </div>
@@ -642,7 +651,7 @@ export default function DarsliklarPage() {
                                 name="gender"
                                 value={formData.gender}
                                 onChange={handleChange}
-                                className="form-input"
+className="form-input-dark w-full"
                               >
                                 <option value="">Tanlang</option>
                                 <option value="54">Erkak</option>
@@ -665,7 +674,10 @@ export default function DarsliklarPage() {
                       {/* Step 2 */}
                       {formStep === 2 && (
                         <div className="space-y-4">
-                          <h3 className="text-xl font-bold text-white mb-6">Ta'lim ma'lumotlari</h3>
+                          <div className="mb-5">
+                            <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">2-qadam</p>
+                            <h3 className="text-xl font-bold text-white">Ta'lim ma'lumotlari</h3>
+                          </div>
 
                           <div>
                             <label className="block text-sm text-white/70 mb-2">Davlatingiz</label>
@@ -673,7 +685,7 @@ export default function DarsliklarPage() {
                               <button
                                 type="button"
                                 onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                                className="form-input w-full text-left flex items-center justify-between"
+                                className="form-input-dark w-full text-left flex items-center justify-between"
                               >
                                 <span>{formData.country || "Davlatni tanlang"}</span>
                                 <Icon name="expand_more" className="text-lg" />
@@ -716,7 +728,7 @@ export default function DarsliklarPage() {
                               name="level"
                               value={formData.level}
                               onChange={handleChange}
-                              className="form-input"
+                              className="form-input-dark w-full"
                             >
                               <option value="">Tanlang</option>
                               <option value="beginner">Boshlang'ich (Hech narsa bilmayman)</option>
@@ -749,7 +761,10 @@ export default function DarsliklarPage() {
                       {/* Step 3 */}
                       {formStep === 3 && (
                         <div className="space-y-4">
-                          <h3 className="text-xl font-bold text-white mb-6">Bog'lanish ma'lumotlari</h3>
+                          <div className="mb-5">
+                            <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">3-qadam</p>
+                            <h3 className="text-xl font-bold text-white">Bog'lanish ma'lumotlari</h3>
+                          </div>
 
                           <div>
                             <label className="block text-sm text-white/70 mb-2">Qanday bog'lanishni xohlaysiz?</label>
@@ -836,7 +851,7 @@ export default function DarsliklarPage() {
                                 value={formData.whatsapp}
                                 onChange={handleWhatsAppChange}
                                 placeholder="WhatsApp raqamingiz"
-                                className="form-input flex-1"
+                                className="form-input-dark flex-1"
                               />
                             </div>
                             {errors.whatsapp && <p className="text-red-400 text-xs mt-1">{errors.whatsapp}</p>}
@@ -852,7 +867,7 @@ export default function DarsliklarPage() {
                                 value={formData.telegram}
                                 onChange={handleChange}
                                 placeholder="username"
-                                className="form-input pl-8"
+                                className="form-input-dark w-full pl-8"
                               />
                             </div>
                             {errors.telegram && <p className="text-red-400 text-xs mt-1">{errors.telegram}</p>}
@@ -939,79 +954,81 @@ export default function DarsliklarPage() {
                     </div>
                   ))}
                 </div>
-              ) : courses.length === 0 ? (
+              ) : coursesWithInstructor.length === 0 ? (
                 <div className="text-center py-16">
                   <Icon name="school" className="text-6xl text-white/20 mb-4" />
                   <p className="text-white/50">Hozircha kurslar mavjud emas</p>
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {courses.map((course) => (
-                    <div key={course.slug} className="course-card group">
-                      <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl">
-                        {course.image_url ? (
-                          <Image
-                            src={course.image_url}
-                            alt={course.title}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                            <Icon name="auto_stories" className="text-5xl text-primary/50" />
+                  {coursesWithInstructor.map((course) => {
+                    // Category-specific safe icon/color — never use external person images
+                    const categoryMeta: Record<string, { icon: string; from: string; to: string }> = {
+                      arab_tili:        { icon: "translate",      from: "#0f3d1f", to: "#16532a" },
+                      quron_ilmlari:    { icon: "menu_book",      from: "#1a3a10", to: "#245216" },
+                      fiqh_va_aqida:    { icon: "balance",        from: "#1c2e10", to: "#2a4218" },
+                      islom_tarixi:     { icon: "history_edu",    from: "#2a2010", to: "#3d3010" },
+                      zamonaviy_fanlar: { icon: "science",        from: "#102030", to: "#183050" },
+                    }
+                    const meta = categoryMeta[course.category] || { icon: "auto_stories", from: "#0f2a16", to: "#152a1e" }
+
+                    return (
+                      <div key={course.slug} className="course-card group cursor-pointer" onClick={() => setSelectedCourse(course.slug)}>
+                        {/* Course visual — always a themed gradient, never external images */}
+                        <div
+                          className="relative aspect-[4/3] overflow-hidden rounded-t-xl flex items-center justify-center"
+                          style={{ background: `linear-gradient(135deg, ${meta.from}, ${meta.to})` }}
+                        >
+                          {/* Decorative rings */}
+                          <div className="absolute inset-0 opacity-10">
+                            <div className="absolute top-4 right-4 w-24 h-24 rounded-full border-2 border-primary" />
+                            <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full border border-primary" />
                           </div>
-                        )}
-                        <span className="category-badge absolute top-3 left-3">
-                          {getCategoryLabel(course.category)}
-                        </span>
-                        {course.has_free_consultation && (
-                          <span className="absolute top-3 right-3 px-3 py-1 rounded-full bg-white text-background text-xs font-medium flex items-center gap-1">
-                            <Icon name="headset_mic" className="text-sm" />
-                            Bepul maslahat
+                          <Icon name={meta.icon} className="text-7xl text-primary/40 group-hover:text-primary/60 transition-colors duration-300" style={{ fontSize: "5rem" }} />
+                          <span className="category-badge absolute top-3 left-3">
+                            {getCategoryLabel(course.category)}
                           </span>
-                        )}
-                      </div>
-                      <div className="p-4 space-y-3">
-                        {/* Instructor */}
-                        {course.instructor && (
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-muted overflow-hidden">
-                              {course.instructor.image_url ? (
-                                <Image
-                                  src={course.instructor.image_url}
-                                  alt={course.instructor.name}
-                                  width={24}
-                                  height={24}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-primary/20">
-                                  <Icon name="person" className="text-primary text-xs" />
-                                </div>
-                              )}
-                            </div>
-                            <span className="text-xs text-white/60">{course.instructor.name}</span>
-                          </div>
-                        )}
-                        
-                        <h3 className="font-bold text-white line-clamp-2">{course.title}</h3>
-                        <p className="text-sm text-white/60 line-clamp-2">{course.description}</p>
-                        
-                        <div className="flex items-center gap-1 text-primary text-sm">
-                          <Icon name="calendar_month" className="text-base" />
-                          <span>3 ta bepul dars mavjud</span>
+                          {course.is_bestseller && (
+                            <span className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-amber-500 text-black text-xs font-bold">
+                              ENG KO'P SOTILGAN
+                            </span>
+                          )}
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => setSelectedCourse(course.slug)}
-                          className="w-full h-10 rounded-xl bg-transparent border border-primary text-primary font-bold hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
-                        >
-                          3 ta bepul darsni boshlash
-                        </button>
+                        <div className="p-4 space-y-3">
+                          {/* Always show Muhibulloh Nuronov */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full overflow-hidden border border-primary/30">
+                              <Image
+                                src={MUHIBULLOH.image_url}
+                                alt={MUHIBULLOH.name}
+                                width={28}
+                                height={28}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <span className="text-xs text-white/70 font-medium">{MUHIBULLOH.name}</span>
+                          </div>
+
+                          <h3 className="font-bold text-white leading-snug line-clamp-2">{course.title}</h3>
+                          <p className="text-sm text-white/55 line-clamp-2 leading-relaxed">{course.description}</p>
+
+                          <div className="flex items-center gap-1.5 text-primary text-sm font-medium">
+                            <Icon name="calendar_month" className="text-base" />
+                            <span>3 ta bepul dars mavjud</span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setSelectedCourse(course.slug) }}
+                            className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/85 transition-colors text-sm"
+                          >
+                            3 ta bepul darsni boshlash
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
